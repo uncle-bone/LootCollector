@@ -1,6 +1,6 @@
 # LootCollector — Find, Track & Share Worldforged Loot, Rares and Treasure
 
-> **[⬇ Download v1.0.9](https://github.com/downingwow/LootCollector/releases/download/v1.0.9/LootCollector-v1.0.9.zip)**
+> **[⬇ Download v1.0.9](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.9/LootCollector-v1.0.9.zip)**
 
 
 ## Current release
@@ -13,7 +13,7 @@
 
 Install LootCollector, LootCollector_CustomImport and LootCollector_StarterDB side by side in Interface/AddOns. Preserve LootCollectorDB_Asc. This rollback does not establish that all UI-specific map-marker issues are resolved; test map pins in your client.
 
-Maintainer: Uncle Bone — https://github.com/downingwow
+Maintainer: Uncle Bone — https://github.com/uncle-bone
 
 
 **LootCollector helps you remember where valuable things have been found in Conquest of Azeroth—and learn from discoveries made by other players.** It began as a community-driven tracker for **Worldforged items and Mystic Scrolls** and has been extended with **rare-creature, treasure-chest, and loot-learning features** for Ascension: Conquest of Azeroth / Conquest Reborn.
@@ -97,7 +97,7 @@ Some actions may require a supported target, zone, or correctly formatted record
 
 ## Current build and limits
 
-**Current source build: v1.0.9.** Map stack-overflow fix and CoA release metadata. Installable ZIPs and version history are published through [GitHub Releases](https://github.com/downingwow/LootCollector/releases).
+**Current source build: v1.0.9.** Map stack-overflow fix and CoA release metadata. Installable ZIPs and version history are published through [GitHub Releases](https://github.com/uncle-bone/LootCollector/releases).
 
 - Loot-table data grows from observations and is not necessarily complete.
 - Rare/chest locations and timers may be approximate.
@@ -108,7 +108,7 @@ Some actions may require a supported target, zone, or correctly formatted record
 
 Original LootCollector by **Skulltrail**, with contributions from Deidre, Rhenyra, Morty, Markosz, Bandit Tech, xan, Stilnight, Xurkon, Netherborne, Jollyg, and others credited in the addon. CoA rare/chest extensions and distribution maintained by **Uncle Bone**. Community project, not an official Ascension release.
 
-[Report a bug / request a feature](https://github.com/downingwow/LootCollector/issues) · [Changelog](CHANGELOG.md)
+[Report a bug / request a feature](https://github.com/uncle-bone/LootCollector/issues) · [Changelog](CHANGELOG.md)
 
 
 ## Earlier v1.0.7 changes
