@@ -13,7 +13,7 @@ local function enabled()
   return p and p.sharing and p.sharing.enabled ~= false and p.sharing.smartSyncV3 ~= false
 end
 local function tidy(v, limit)
-  return tostring(v or ""):gsub("[%c|\\]", " "):sub(1, limit or 50)
+  return tostring(v or ""):gsub("[%c;~]", " "):sub(1, limit or 50)
 end
 local function num(v) return tonumber(v) or 0 end
 local function int(v) return math.floor(num(v) + 0.5) end
@@ -82,7 +82,7 @@ local function say(msg)
 end
 function S:Queue(parts, target)
   if not enabled() then return false end
-  local wire = PREFIX.."|"..table.concat(parts,"|")
+  local wire = PREFIX..";"..table.concat(parts,";")
   if #wire > MAX_WIRE or wire:find("[%c]") then return false end
   local key = (target or "*")..":"..wire
   if self.pending[key] then return false end
@@ -106,7 +106,8 @@ function S:ScanStep()
   while budget > 0 and self.scanSection <= #SECTIONS do
     local section=SECTIONS[self.scanSection]
     local db=section=="W" and self.scanData.W or section=="V" and self.scanData.V or self.scanData.R
-    local key,d=next(db,self.scanKey)
+    local valid,key,d=pcall(next,db,self.scanKey)
+    if not valid then self.scanKey=nil;key,d=next(db,nil) end
     if key == nil then
       self.scanSection=self.scanSection+1;self.scanKey=nil
     else
@@ -161,7 +162,7 @@ function S:SendDiff(sec)
 end
 function S:Accept(sender, wire)
   if not enabled() or type(wire)~="string" or #wire>MAX_WIRE or #wire<8 then return end
-  if wire:sub(1,#PREFIX+1)~=PREFIX.."|" or wire:find("[%c]") then return end
+  if wire:sub(1,#PREFIX+1)~=PREFIX..";" or wire:find("[%c]") then return end
   if sender==UnitName("player") then return end
   local p=self.peer[sender]
   local t=clock()
@@ -203,17 +204,17 @@ function S:Apply(sec, content, sender)
   end
 end
 function S:Process(sender,wire)
-  local kind,rest=wire:match("^LCS3|([^|]+)|?(.*)$")
+  local kind,rest=wire:match("^LCS3;([^;]+);?(.*)$")
   if not kind then return end
   local p=self.peer[sender]
   local now=clock()
   if kind=="HELLO" then
     if rest~="3" then return end
-    if now-(p.last or 0)<60 then return end
+    if now-(p.last or -1000)<60 then return end
     p.last=now
     if not self.scanning then self:Summaries() end
   elseif kind=="SUMMARY" then
-    local sec,count,fp=rest:match("^([WVRC])|(%d+)|(%x+)$")
+    local sec,count,fp=rest:match("^([WVRC]);(%d+);(%x+)$")
     if not sec or #fp~=8 or num(count)>100000 then return end
     local localSum=self.sum[sec]
     if not self.scanning and localSum and (localSum.fp~=fp or localSum.count~=num(count)) then
@@ -221,7 +222,7 @@ function S:Process(sender,wire)
       self:SendDiff(sec)
     end
   elseif kind=="DIFF" then
-    local sec,id,fp=rest:match("^([WVRC])|(%x+)|(%x+)$")
+    local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
     if not sec or #id~=8 or #fp~=8 or self.scanning then return end
     local localRec=self.index[sec] and self.index[sec][id]
     if (not localRec or localRec.fp~=fp) and p.requests<16 then
@@ -229,14 +230,14 @@ function S:Process(sender,wire)
       self:Queue({"REQUEST",sec,id,fp})
     end
   elseif kind=="REQUEST" then
-    local sec,id,fp=rest:match("^([WVRC])|(%x+)|(%x+)$")
+    local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
     if not sec or #id~=8 or #fp~=8 then return end
     local record=self.index[sec] and self.index[sec][id]
     if record and record.fp==fp then
       self:Queue({"DATA",sec,id,fp,record.content})
     end
   elseif kind=="DATA" then
-    local sec,id,fp,content=rest:match("^([WVRC])|(%x+)|(%x+)|(.+)$")
+    local sec,id,fp,content=rest:match("^([WVRC]);(%x+);(%x+);(.+)$")
     if not sec or #id~=8 or #fp~=8 or not content then return end
     -- Trust neither sender's declared fingerprint nor identity.
     local a={}
