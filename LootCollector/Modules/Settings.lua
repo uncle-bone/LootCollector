@@ -1198,6 +1198,29 @@ local function buildOptions()
 							end
 						end,
 					},
+					smartSyncV3 = {
+						type = "toggle",
+						name = "SmartSync v3 (incremental)",
+						order = 10.2,
+						desc = "Exchange compact record fingerprints and request changed discoveries only. Enabled by default. All traffic uses the existing BBLC25C channel.",
+						disabled = function() return not L.db.profile.sharing.enabled end,
+						get = function() return L.db.profile.sharing.smartSyncV3 ~= false end,
+						set = function(_, value)
+							L.db.profile.sharing.smartSyncV3 = value
+							local sync = L:GetModule("SmartSync", true)
+							if sync then
+								if value then sync:OnEnter() else sync:OnLeave() end
+							end
+						end,
+					},
+					syncNotifications = {
+						type = "toggle",
+						name = "Show SmartSync progress in chat",
+						order = 10.3,
+						desc = "Display throttled discovery indexing progress and a synchronization queue completion message.",
+						get = function() return L.db.profile.sharing.syncNotifications ~= false end,
+						set = function(_, value) L.db.profile.sharing.syncNotifications = value end,
+					},
 					publicChannelEnabled = {
 						type = "toggle",
 						name = "Enable Public Channel Sync",
