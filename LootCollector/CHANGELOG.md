@@ -1,3 +1,7 @@
+## CoA v1.0.12 — Loading progress chat
+- Added core and SmartSync startup stage and completion messages without extra discovery scans.
+- Preserved delayed startup indexing and existing discovery data.
+
 ## CoA v1.0.11 — Startup lag mitigation
 - Defer SmartSync indexing for 45 seconds after world entry.
 - Reduce per-tick indexing batch to five and remove periodic complete rescans.
