@@ -99,6 +99,7 @@ function S:Rebuild()
   self.scanKey=nil
   self.scanning=true
   self.scanCount=0
+  say("SmartSync indexing started (small batches).")
 end
 function S:ScanStep()
   if not self.scanning then return end
@@ -136,7 +137,7 @@ function S:ScanStep()
     end
     self.scanData=nil;self.scanning=false
     self.nextRebuild=nil -- never rescan the entire database on a periodic timer
-    say("Local discovery index ready ("..self.scanCount.." records).")
+    say("SmartSync indexing complete ("..self.scanCount.." records).")
   end
 end
 function S:Summaries()
@@ -285,13 +286,18 @@ function S:OnEnter()
   self.scanData=nil
   self.index={};self.order={};self.sum={}
   self.nextRebuild=nil
-  say("SmartSync waiting for startup to settle...")
+  if enabled() then say("SmartSync queued; indexing starts after 45s.") else say("SmartSync disabled; indexing skipped.") end
 end
 function S:OnUpdate(elapsed)
   self.tick=(self.tick or 0)+elapsed
   if self.tick<0.1 then return end
   self.tick=0
-  if not enabled() or clock()<self.readyAt then return end
+  if not enabled() then
+    if not self.disabledNotified then say("SmartSync disabled; no indexing or network work.");self.disabledNotified=true end
+    return
+  end
+  self.disabledNotified=false
+  if clock()<self.readyAt then return end
   if self.scanAt and clock()>=self.scanAt then
     self.scanAt=nil
     self:Rebuild()
@@ -320,7 +326,7 @@ function S:OnUpdate(elapsed)
     self:Process(packet.sender,packet.wire)
   end
   if queueLength(self.outgoing)==0 and queueLength(self.incoming)==0 and not self.readyNotified then
-    say("SmartSync ready. "..self.stats.updated.." records updated.")
+    say("SmartSync startup complete; sharing ready ("..self.stats.updated.." records updated).")
     self.readyNotified=true
   end
   if t-self.lastSent<SEND_INTERVAL or self.sentSession>=SESSION_LIMIT then return end
