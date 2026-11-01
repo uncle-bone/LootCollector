@@ -1,3 +1,8 @@
+## CoA v1.0.11 — Startup lag mitigation
+- Defer SmartSync indexing for 45 seconds after world entry.
+- Reduce per-tick indexing batch to five and remove periodic complete rescans.
+- Preserve saved discoveries; CPU attribution and in-game impact still unverified.
+
 ## CoA v1.0.10 — Experimental SmartSync v3
 - Dedicated LCS3 protocol on BBLC25C with bounded incremental reconciliation.
 - Login transmission shield, timed indexing, duplicate suppression, FIFO queues, conservative peer/session limits.
