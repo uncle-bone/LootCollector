@@ -2092,7 +2092,13 @@ function LootCollector:EnsureDatabaseInitialized()
     return true
 end
 
+function LootCollector:LoadingStatus(message)
+    if self.db and self.db.profile and self.db.profile.loadingChatMessages == false then return end
+    print("|cff66ccffLootCollector loading:|r " .. tostring(message))
+end
+
 function LootCollector:OnInitialize()
+    self:LoadingStatus("Initializing saved data...")
     
     self:PreInitializeMigration()
 
@@ -2198,6 +2204,7 @@ function LootCollector:OnInitialize()
     end
 
     self:EnsureDatabaseInitialized()
+    self:LoadingStatus("Saved discovery database initialized.")
     
     SLASH_LootCollectorARROW1 = "/lcarrow"
     SlashCmdList["LootCollectorARROW"] = function(msg)
@@ -2246,7 +2253,9 @@ function LootCollector:OnInitialize()
         end
     end
 
+    self:LoadingStatus("Preparing starter database lookup...")
     self:InitializeStarterDBLookup()
+    self:LoadingStatus("Core initialization complete.")
 end
 
 function LootCollector:InitializeStarterDBLookup()
@@ -2498,6 +2507,7 @@ function LootCollector:DelayedChannelInit()
     self._sharedChannelSafeAfter = GetTime() + DELAY_SECONDS
     self:ScheduleAfter(DELAY_SECONDS, function()
         LootCollector.channelReady = true
+        LootCollector:LoadingStatus("Shared channel startup delay complete.")
         if LootCollector.db and LootCollector.db.profile.sharing.enabled and not LootCollector:IsZoneIgnored() then
             if Comm.EnsureChannelJoined then
                 Comm:EnsureChannelJoined()
@@ -2508,6 +2518,7 @@ function LootCollector:DelayedChannelInit()
 end
 
 function LootCollector:OnEnable()   
+    self:LoadingStatus("Enabling map and discovery modules...")
     local Map = self:GetModule("Map", true)
     if Map then 
         self:RegisterEvent("WORLD_MAP_UPDATE", function() 
@@ -2516,7 +2527,10 @@ function LootCollector:OnEnable()
     end
     
     self:RegisterEvent("PLAYER_ENTERING_WORLD", function(event, ...)
+        self:LoadingStatus("World entered; checking saved discoveries...")
         self:EnsureDatabaseInitialized()
+        self:LoadingStatus("Saved discoveries ready. Map data available on demand.")
+        self:LoadingStatus("Shared channel initialization scheduled (35s).")
         self:DelayedChannelInit()
         
         self:EvaluateAutoPause()
@@ -2532,6 +2546,7 @@ function LootCollector:OnEnable()
             end)
         end
         self:SchedulePrestigeLevelCheck()
+        self:LoadingStatus("Core startup complete; SmartSync indexes separately after 45s.")
     end)
     
     
