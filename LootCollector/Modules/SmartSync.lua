@@ -86,9 +86,8 @@ function S:Queue(parts, target)
   if #wire > MAX_WIRE or wire:find("[%c]") then return false end
   local key = (target or "*")..":"..wire
   if self.pending[key] then return false end
-  if not push(self.outgoing,{wire=wire,target=target,key=key},MAX_QUEUE) then self.stats.dropped=self.stats.dropped+1; return false end
+  if not push(self.outgoing,{wire=wire,target=target,key=key,due=clock()+math.random(1,4)},MAX_QUEUE) then self.stats.dropped=self.stats.dropped+1; return false end
   self.pending[key]=true
-  self.readyNotified=false
   return true
 end
 function S:Rebuild()
@@ -278,6 +277,7 @@ function S:OnEnter()
   self.readyNotified=false
   self.scanAnnouncement=0
   self:Rebuild()
+  say("Loading discoveries for SmartSync...")
 end
 function S:OnUpdate(elapsed)
   self.tick=(self.tick or 0)+elapsed
@@ -315,6 +315,7 @@ function S:OnUpdate(elapsed)
   if id<=0 or not SendChatMessage then return end
   local packet=pop(self.outgoing)
   if not packet then return end
+  if t < packet.due then push(self.outgoing,packet,MAX_QUEUE); return end
   self.pending[packet.key]=nil
   -- No hidden chat-channel joins; Comm owns BBLC25C independently.
   if InCombatLockdown and InCombatLockdown() then
