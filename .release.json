@@ -1,6 +1,6 @@
 {
-  "version": "v1.0.9",
-  "prerelease": false,
+  "version": "v1.0.10",
+  "prerelease": true,
   "folders": [
     "LootCollector",
     "LootCollector_CustomImport",
