@@ -1,13 +1,13 @@
 ## Interface: 30300
-## Title: |cffe5cc80LootCollector|r |cffe5cc80[CoA 1.0.9 + Rare/Chest Tracker]|r
-## Notes: Community discovery and sharing for Ascension Conquest of Azeroth. Maintained by Uncle Bone. GitHub: github.com/downingwow
+## Title: |cffe5cc80LootCollector|r |cffe5cc80[CoA 1.0.10 + Rare/Chest Tracker]|r
+## Notes: Community discovery and sharing for Ascension Conquest of Azeroth. Maintained by Uncle Bone. GitHub: github.com/uncle-bone
 ## Author: Uncle Bone (CoA maintainer)
 ## X-Upstream-Contributors: Deidre, Rhenyra, Morty, Markosz, Bandit Tech, xan, Stilnight, Xurkon, Netherborne, Jollyg
-## Version: 1.0.9
-## X-CoA-Version: 1.0.9
+## Version: 1.0.10
+## X-CoA-Version: 1.0.10
 ## X-Upstream-Version: 1.0.6
 ## X-Maintainer: Uncle Bone
-## X-Website: https://github.com/downingwow/LootCollector
+## X-Website: https://github.com/uncle-bone/LootCollector
 ## SavedVariables: LootCollectorDB_Asc
 ## OptionalDeps: Ace3, TomTom, AtlasLoot_Cache
 
@@ -47,6 +47,7 @@ Modules\Comm.lua
 Modules\RareChest.lua
 Modules\Moderation.lua
 Modules\DBSync.lua
+Modules\SmartSync.lua
 
 # Map/UI and behavior modules
 Modules\ProximityList.lua
@@ -59,4 +60,4 @@ Modules\Viewer.lua
 Modules\MinimapButton.lua
 Modules\Tooltip.lua
 ## X-Upstream-Author: Skulltrail
-## X-Contact: https://github.com/downingwow
+## X-Contact: https://github.com/uncle-bone
