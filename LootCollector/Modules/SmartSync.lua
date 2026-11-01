@@ -6,7 +6,7 @@ local PREFIX, CHANNEL = "LCS3", "BBLC25C"
 local SECTIONS = {"W", "V", "R", "C"}
 local MAX_WIRE, MAX_QUEUE, MAX_IN = 225, 96, 96
 local SEND_INTERVAL, START_DELAY, HELLO_INTERVAL = 4, 10, 300
-local SESSION_LIMIT, DIFF_LIMIT, RECORDS_PER_TICK = 120, 240, 30
+local SESSION_LIMIT, DIFF_LIMIT, RECORDS_PER_TICK = 120, 240, 5
 local function clock() return GetTime and GetTime() or 0 end
 local function enabled()
   local p = L.db and L.db.profile
@@ -135,7 +135,7 @@ function S:ScanStep()
       self.sum[section]={count=#ids,fp=string.format("%08x",h)}
     end
     self.scanData=nil;self.scanning=false
-    self.nextRebuild=clock()+600
+    self.nextRebuild=nil -- never rescan the entire database on a periodic timer
     say("Local discovery index ready ("..self.scanCount.." records).")
   end
 end
@@ -268,22 +268,34 @@ function S:OnChannel(_,message,sender,_,channelName)
 end
 function S:OnLeave()
   self.readyAt=math.huge
+  self.scanAt=nil
+  self.scanning=false
+  self.scanData=nil
   self.outgoing={first=1,last=0};self.pending={}
   self.incoming={first=1,last=0}
 end
 function S:OnEnter()
-  self.readyAt=clock()+START_DELAY
+  self.readyAt=clock()+30
+  self.scanAt=clock()+45
   self.sentSession=0
   self.readyNotified=false
   self.scanAnnouncement=0
-  self:Rebuild()
-  say("Loading discoveries for SmartSync...")
+  -- Do not scan the database during login, map initialization, or /reload.
+  self.scanning=false
+  self.scanData=nil
+  self.index={};self.order={};self.sum={}
+  self.nextRebuild=nil
+  say("SmartSync waiting for startup to settle...")
 end
 function S:OnUpdate(elapsed)
   self.tick=(self.tick or 0)+elapsed
   if self.tick<0.1 then return end
   self.tick=0
   if not enabled() or clock()<self.readyAt then return end
+  if self.scanAt and clock()>=self.scanAt then
+    self.scanAt=nil
+    self:Rebuild()
+  end
   if self.scanning then
     self:ScanStep()
     if self.scanning and clock()-(self.scanAnnouncement or 0)>15 then
@@ -292,8 +304,9 @@ function S:OnUpdate(elapsed)
     end
     return
   end
-  if self.nextRebuild and clock()>=self.nextRebuild then self:Rebuild();return end
+
   local t=clock()
+  if self.scanAt then return end
   if t-self.lastHello>HELLO_INTERVAL then
     self:Queue({"HELLO","3"})
     self.lastHello=t
