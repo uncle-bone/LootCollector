@@ -1,3 +1,10 @@
+## CoA v1.0.10 — Experimental SmartSync v3
+- Dedicated LCS3 protocol on BBLC25C with bounded incremental reconciliation.
+- Login transmission shield, timed indexing, duplicate suppression, FIFO queues, conservative peer/session limits.
+- Settings toggles for SmartSync and progress notifications.
+- Existing discovery data, map modules, and legacy communication remain intact.
+- In-game and UI compatibility tests pending.
+
 ## CoA v1.0.8 — World map marker restoration
 - Fall back to WorldMapButton geometry when UI replacements provide invalid detail-frame geometry.
 - Retry map pin rendering when map layout is not yet ready.
