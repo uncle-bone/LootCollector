@@ -1,8 +1,10 @@
 # LootCollector CoA
 
+> **[⬇ Download v1.0.12 — Current stable release](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.12/LootCollector-v1.0.12.zip)**
+
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a).**
 
-**Current repository release: v1.0.9 — map rollback.** [Download releases](https://github.com/uncle-bone/LootCollector/releases) · [Report issues](https://github.com/uncle-bone/LootCollector/issues)
+**Current stable release: v1.0.12 — loading progress and SmartSync readiness messages.** [Download the current ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.12/LootCollector-v1.0.12.zip) · [Report issues](https://github.com/uncle-bone/LootCollector/issues)
 
 ## What it does
 
@@ -14,6 +16,10 @@
 - **Companion datasets:** Optional starter database and custom import module included with the package.
 
 **Important:** Discovery pins represent reported locations, not guaranteed current spawns. Respawn estimates and observed loot lists are not authoritative. Some custom entities may not be detected automatically.
+
+## v1.0.12 — Loading progress
+
+The release announces saved-discovery initialization, starter database lookup, core startup, shared-channel readiness, SmartSync indexing and sharing readiness. Indexing stays deferred for 45 seconds and processes five records per tick. Notices are throttled. In-game verification is still needed.
 
 ## v1.0.9 — What changed
 
