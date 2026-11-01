@@ -10,7 +10,7 @@ local SESSION_LIMIT, DIFF_LIMIT, RECORDS_PER_TICK = 120, 240, 30
 local function clock() return GetTime and GetTime() or 0 end
 local function enabled()
   local p = L.db and L.db.profile
-  return p and p.sharing and p.sharing.enabled ~= false and p.sharing.smartSyncV3 ~= false
+  return p and p.sharing and p.sharing.enabled ~= false and p.sharing.publicChannelEnabled ~= false and p.sharing.smartSyncV3 ~= false
 end
 local function tidy(v, limit)
   return tostring(v or ""):gsub("[%c;~]", " "):sub(1, limit or 50)
@@ -88,6 +88,7 @@ function S:Queue(parts, target)
   if self.pending[key] then return false end
   if not push(self.outgoing,{wire=wire,target=target,key=key},MAX_QUEUE) then self.stats.dropped=self.stats.dropped+1; return false end
   self.pending[key]=true
+  self.readyNotified=false
   return true
 end
 function S:Rebuild()
@@ -128,7 +129,6 @@ function S:ScanStep()
   if self.scanSection > #SECTIONS then
     for _,section in ipairs(SECTIONS) do
       local ids=self.order[section]
-      table.sort(ids)
       local h=0
       for _,id in ipairs(ids) do
         h=(h+tonumber(hash(id..self.index[section][id].fp),16))%2147483647
@@ -136,6 +136,7 @@ function S:ScanStep()
       self.sum[section]={count=#ids,fp=string.format("%08x",h)}
     end
     self.scanData=nil;self.scanning=false
+    self.nextRebuild=clock()+600
     say("Local discovery index ready ("..self.scanCount.." records).")
   end
 end
@@ -149,7 +150,7 @@ end
 function S:SendDiff(sec)
   if self.scanning or not self.order[sec] then return end
   local ids=self.order[sec]
-  local limit=math.min(#ids,DIFF_LIMIT)
+  local limit=#ids
   if limit == 0 then return end
   local start=self.diffCursor and self.diffCursor[sec] or 1
   self.diffCursor=self.diffCursor or {}
@@ -163,13 +164,17 @@ end
 function S:Accept(sender, wire)
   if not enabled() or type(wire)~="string" or #wire>MAX_WIRE or #wire<8 then return end
   if wire:sub(1,#PREFIX+1)~=PREFIX..";" or wire:find("[%c]") then return end
-  if sender==UnitName("player") then return end
+  if type(sender)~="string" or sender=="" or sender==UnitName("player") then return end
   local p=self.peer[sender]
   local t=clock()
   if not p then p={start=t,count=0,last=0,requests=0};self.peer[sender]=p end
-  if t-p.start>=60 then p.start=t;p.count=0;p.requests=0 end
+  if t-p.start>=60 then p.start=t;p.count=0;p.requests=0;p.responses=0;p.seen={} end
   if p.count>=20 then return end
   p.count=p.count+1
+  p.seen=p.seen or {}
+  if p.seen[wire] and t-p.seen[wire]<90 then return end
+  if p.count==1 then p.seen={} end
+  p.seen[wire]=t
   push(self.incoming,{sender=sender,wire=wire},MAX_IN)
 end
 function S:Apply(sec, content, sender)
@@ -233,7 +238,8 @@ function S:Process(sender,wire)
     local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
     if not sec or #id~=8 or #fp~=8 then return end
     local record=self.index[sec] and self.index[sec][id]
-    if record and record.fp==fp then
+    if record and record.fp==fp and (p.responses or 0)<12 then
+      p.responses=(p.responses or 0)+1
       self:Queue({"DATA",sec,id,fp,record.content})
     end
   elseif kind=="DATA" then
@@ -269,6 +275,8 @@ end
 function S:OnEnter()
   self.readyAt=clock()+START_DELAY
   self.sentSession=0
+  self.readyNotified=false
+  self.scanAnnouncement=0
   self:Rebuild()
 end
 function S:OnUpdate(elapsed)
@@ -276,7 +284,15 @@ function S:OnUpdate(elapsed)
   if self.tick<0.1 then return end
   self.tick=0
   if not enabled() or clock()<self.readyAt then return end
-  if self.scanning then self:ScanStep();return end
+  if self.scanning then
+    self:ScanStep()
+    if self.scanning and clock()-(self.scanAnnouncement or 0)>15 then
+      self.scanAnnouncement=clock()
+      say("Indexing discoveries: "..self.scanCount.." scanned...")
+    end
+    return
+  end
+  if self.nextRebuild and clock()>=self.nextRebuild then self:Rebuild();return end
   local t=clock()
   if t-self.lastHello>HELLO_INTERVAL then
     self:Queue({"HELLO","3"})
@@ -290,6 +306,10 @@ function S:OnUpdate(elapsed)
     if not packet then break end
     self:Process(packet.sender,packet.wire)
   end
+  if queueLength(self.outgoing)==0 and queueLength(self.incoming)==0 and not self.readyNotified then
+    say("SmartSync ready. "..self.stats.updated.." records updated.")
+    self.readyNotified=true
+  end
   if t-self.lastSent<SEND_INTERVAL or self.sentSession>=SESSION_LIMIT then return end
   local id=channelID()
   if id<=0 or not SendChatMessage then return end
@@ -297,6 +317,11 @@ function S:OnUpdate(elapsed)
   if not packet then return end
   self.pending[packet.key]=nil
   -- No hidden chat-channel joins; Comm owns BBLC25C independently.
+  if InCombatLockdown and InCombatLockdown() then
+    push(self.outgoing,packet,MAX_QUEUE)
+    self.pending[packet.key]=true
+    return
+  end
   SendChatMessage(packet.wire,"CHANNEL",nil,id)
   self.lastSent=t;self.sentSession=self.sentSession+1;self.stats.sent=self.stats.sent+1
 end
