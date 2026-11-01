@@ -1,0 +1,310 @@
+-- LootCollector SmartSync v3: bounded, incremental discovery reconciliation.
+-- WoW 3.3.5a / Lua 5.1. Protocol intentionally distinct from LCDB1, LCR1 and Questie.
+local L = LootCollector
+local S = L:NewModule("SmartSync", "AceEvent-3.0")
+local PREFIX, CHANNEL = "LCS3", "BBLC25C"
+local SECTIONS = {"W", "V", "R", "C"}
+local MAX_WIRE, MAX_QUEUE, MAX_IN = 225, 96, 96
+local SEND_INTERVAL, START_DELAY, HELLO_INTERVAL = 4, 10, 300
+local SESSION_LIMIT, DIFF_LIMIT, RECORDS_PER_TICK = 120, 240, 30
+local function clock() return GetTime and GetTime() or 0 end
+local function enabled()
+  local p = L.db and L.db.profile
+  return p and p.sharing and p.sharing.enabled ~= false and p.sharing.smartSyncV3 ~= false
+end
+local function tidy(v, limit)
+  return tostring(v or ""):gsub("[%c|\\]", " "):sub(1, limit or 50)
+end
+local function num(v) return tonumber(v) or 0 end
+local function int(v) return math.floor(num(v) + 0.5) end
+local function coord(v) return int(num(v) * 10000) end
+local function hash(s)
+  local h = 5381
+  for i=1,#s do h = (h * 33 + s:byte(i)) % 2147483647 end
+  return string.format("%08x", h)
+end
+local function channelID()
+  local C = L:GetModule("Comm", true)
+  local n = C and tonumber(C.channelId) or 0
+  if n > 0 then return n end
+  if GetChannelName then
+    local id = GetChannelName(CHANNEL)
+    return tonumber(id) or 0
+  end
+  return 0
+end
+local function rawData()
+  local rc = L:GetModule("RareChest", true)
+  return {
+    W = L.GetDiscoveriesDB and L:GetDiscoveriesDB() or {},
+    V = L.GetVendorsDB and L:GetVendorsDB() or {},
+    R = rc and rc.GetRecords and rc:GetRecords() or {}
+  }
+end
+local function encode(section, d)
+  if type(d) ~= "table" then return nil end
+  if section == "R" or section == "C" then
+    if not d.name or not d.kind or num(d.map) <= 0 or num(d.x) < 0 or num(d.x) > 1 or num(d.y) < 0 or num(d.y) > 1 then return nil end
+    local isRare = d.kind == "rare"
+    if (section == "R") ~= isRare then return nil end
+    local identity = table.concat({tidy(d.kind,12),int(d.map),isRare and tidy(d.name,50):lower() or coord(d.x),isRare and "" or coord(d.y),isRare and "" or tidy(d.name,40):lower()},":")
+    local content = table.concat({tidy(d.kind,12),int(d.map),coord(d.x),coord(d.y),int(d.level),int(d.respawn),tidy(d.name,50),tidy(d.drops,45),tidy(d.notes,35)},"~")
+    return hash(identity), hash(content), content
+  end
+  local xy = d.xy
+  if not xy or not d.i or num(d.z) <= 0 then return nil end
+  local c,z,i,x,y,iz = int(d.c),int(d.z),int(d.i),coord(xy.x),coord(xy.y),int(d.iz)
+  if x < 0 or x > 10000 or y < 0 or y > 10000 then return nil end
+  local identity = table.concat({section,c,z,i,x,y,iz},":")
+  local content = table.concat({c,z,i,x,y,iz,int(d.dt),int(d.q),int(d.it),int(d.ist),tidy(d.itemName or d.vendorName,40)},"~")
+  return hash(identity), hash(content), content
+end
+local function queueLength(q) return q.last - q.first + 1 end
+local function push(q, value, maxCount)
+  if queueLength(q) >= maxCount then return false end
+  q.last = q.last + 1
+  q[q.last] = value
+  return true
+end
+local function pop(q)
+  if q.first > q.last then return nil end
+  local v=q[q.first];q[q.first]=nil;q.first=q.first+1
+  if q.first > q.last then q.first=1;q.last=0 end
+  return v
+end
+S.outgoing={first=1,last=0}; S.incoming={first=1,last=0}
+S.pending={}; S.peer={}; S.index={}; S.order={}; S.sum={}
+S.stats={updated=0,sent=0,dropped=0}
+S.readyAt=math.huge;S.lastSent=0;S.sentSession=0;S.lastHello=0
+local function say(msg)
+  if L.db and L.db.profile and L.db.profile.sharing and L.db.profile.sharing.syncNotifications == false then return end
+  print("|cff66ccffLootCollector:|r " .. msg)
+end
+function S:Queue(parts, target)
+  if not enabled() then return false end
+  local wire = PREFIX.."|"..table.concat(parts,"|")
+  if #wire > MAX_WIRE or wire:find("[%c]") then return false end
+  local key = (target or "*")..":"..wire
+  if self.pending[key] then return false end
+  if not push(self.outgoing,{wire=wire,target=target,key=key},MAX_QUEUE) then self.stats.dropped=self.stats.dropped+1; return false end
+  self.pending[key]=true
+  return true
+end
+function S:Rebuild()
+  self.index={W={},V={},R={},C={}}
+  self.order={W={},V={},R={},C={}}
+  self.sum={}
+  self.scanData=rawData()
+  self.scanSection=1
+  self.scanKey=nil
+  self.scanning=true
+  self.scanCount=0
+end
+function S:ScanStep()
+  if not self.scanning then return end
+  local budget=RECORDS_PER_TICK
+  while budget > 0 and self.scanSection <= #SECTIONS do
+    local section=SECTIONS[self.scanSection]
+    local db=section=="W" and self.scanData.W or section=="V" and self.scanData.V or self.scanData.R
+    local key,d=next(db,self.scanKey)
+    if key == nil then
+      self.scanSection=self.scanSection+1;self.scanKey=nil
+    else
+      self.scanKey=key;budget=budget-1
+      local id,fp,content=encode(section,d)
+      if id then
+        local old=self.index[section][id]
+        if not old then
+          self.order[section][#self.order[section]+1]=id
+          self.index[section][id]={fp=fp,content=content}
+          self.scanCount=self.scanCount+1
+        elseif fp < old.fp then
+          self.index[section][id]={fp=fp,content=content}
+        end
+      end
+    end
+  end
+  if self.scanSection > #SECTIONS then
+    for _,section in ipairs(SECTIONS) do
+      local ids=self.order[section]
+      table.sort(ids)
+      local h=0
+      for _,id in ipairs(ids) do
+        h=(h+tonumber(hash(id..self.index[section][id].fp),16))%2147483647
+      end
+      self.sum[section]={count=#ids,fp=string.format("%08x",h)}
+    end
+    self.scanData=nil;self.scanning=false
+    say("Local discovery index ready ("..self.scanCount.." records).")
+  end
+end
+function S:Summaries()
+  if self.scanning then return end
+  for _,sec in ipairs(SECTIONS) do
+    local a=self.sum[sec]
+    self:Queue({"SUMMARY",sec,a.count,a.fp})
+  end
+end
+function S:SendDiff(sec)
+  if self.scanning or not self.order[sec] then return end
+  local ids=self.order[sec]
+  local limit=math.min(#ids,DIFF_LIMIT)
+  if limit == 0 then return end
+  local start=self.diffCursor and self.diffCursor[sec] or 1
+  self.diffCursor=self.diffCursor or {}
+  for i=start,math.min(start+7,limit) do
+    local id=ids[i]
+    local r=self.index[sec][id]
+    if r then self:Queue({"DIFF",sec,id,r.fp}) end
+  end
+  self.diffCursor[sec] = start+8 > limit and 1 or start+8
+end
+function S:Accept(sender, wire)
+  if not enabled() or type(wire)~="string" or #wire>MAX_WIRE or #wire<8 then return end
+  if wire:sub(1,#PREFIX+1)~=PREFIX.."|" or wire:find("[%c]") then return end
+  if sender==UnitName("player") then return end
+  local p=self.peer[sender]
+  local t=clock()
+  if not p then p={start=t,count=0,last=0,requests=0};self.peer[sender]=p end
+  if t-p.start>=60 then p.start=t;p.count=0;p.requests=0 end
+  if p.count>=20 then return end
+  p.count=p.count+1
+  push(self.incoming,{sender=sender,wire=wire},MAX_IN)
+end
+function S:Apply(sec, content, sender)
+  if type(content)~="string" or #content>190 then return end
+  local a={}
+  for f in (content.."~"):gmatch("(.-)~") do
+    a[#a+1]=f
+    if #a>15 then return end
+  end
+  if sec=="R" or sec=="C" then
+    if #a~=9 then return end
+    local kind=a[1]
+    if (sec=="R" and kind~="rare") or (sec=="C" and kind~="chest" and kind~="highrisk" and kind~="warmode" and kind~="object") then return end
+    local map,x,y=tonumber(a[2]),tonumber(a[3]),tonumber(a[4])
+    if not map or map<=0 or not x or not y or x<0 or x>10000 or y<0 or y>10000 then return end
+    local rc=L:GetModule("RareChest",true)
+    if rc and rc.Upsert then
+      local ok=rc:Upsert({kind=kind,map=map,x=x/10000,y=y/10000,level=tonumber(a[5]),respawn=tonumber(a[6]),name=a[7],drops=a[8],notes=a[9],updated=time()},false)
+      if ok then self.stats.updated=self.stats.updated+1 end
+    end
+  else
+    if #a~=11 then return end
+    for i=1,10 do if tonumber(a[i])==nil then return end end
+    local c,z,item,x,y,iz,dt,q,it,ist=unpack(a)
+    c=tonumber(c);z=tonumber(z);item=tonumber(item);x=tonumber(x);y=tonumber(y)
+    if z<=0 or item==0 or x<0 or x>10000 or y<0 or y>10000 then return end
+    local D=L:GetModule("DBSync",true)
+    if D and D.ApplyRecord then
+      D:ApplyRecord(c,z,item,x,y,0,0,sender,tonumber(q),tonumber(dt),tonumber(it),tonumber(ist),nil,a[11],sender,tonumber(iz))
+      self.stats.updated=self.stats.updated+1
+    end
+  end
+end
+function S:Process(sender,wire)
+  local kind,rest=wire:match("^LCS3|([^|]+)|?(.*)$")
+  if not kind then return end
+  local p=self.peer[sender]
+  local now=clock()
+  if kind=="HELLO" then
+    if rest~="3" then return end
+    if now-(p.last or 0)<60 then return end
+    p.last=now
+    if not self.scanning then self:Summaries() end
+  elseif kind=="SUMMARY" then
+    local sec,count,fp=rest:match("^([WVRC])|(%d+)|(%x+)$")
+    if not sec or #fp~=8 or num(count)>100000 then return end
+    local localSum=self.sum[sec]
+    if not self.scanning and localSum and (localSum.fp~=fp or localSum.count~=num(count)) then
+      -- Send bounded fingerprint advertisements; no DATA until explicitly requested.
+      self:SendDiff(sec)
+    end
+  elseif kind=="DIFF" then
+    local sec,id,fp=rest:match("^([WVRC])|(%x+)|(%x+)$")
+    if not sec or #id~=8 or #fp~=8 or self.scanning then return end
+    local localRec=self.index[sec] and self.index[sec][id]
+    if (not localRec or localRec.fp~=fp) and p.requests<16 then
+      p.requests=p.requests+1
+      self:Queue({"REQUEST",sec,id,fp})
+    end
+  elseif kind=="REQUEST" then
+    local sec,id,fp=rest:match("^([WVRC])|(%x+)|(%x+)$")
+    if not sec or #id~=8 or #fp~=8 then return end
+    local record=self.index[sec] and self.index[sec][id]
+    if record and record.fp==fp then
+      self:Queue({"DATA",sec,id,fp,record.content})
+    end
+  elseif kind=="DATA" then
+    local sec,id,fp,content=rest:match("^([WVRC])|(%x+)|(%x+)|(.+)$")
+    if not sec or #id~=8 or #fp~=8 or not content then return end
+    -- Trust neither sender's declared fingerprint nor identity.
+    local a={}
+    for f in (content.."~"):gmatch("(.-)~") do a[#a+1]=f end
+    local reconstructed
+    if sec=="R" or sec=="C" then
+      reconstructed={kind=a[1],map=num(a[2]),x=num(a[3])/10000,y=num(a[4])/10000,level=num(a[5]),respawn=num(a[6]),name=a[7],drops=a[8],notes=a[9]}
+    elseif #a==11 then
+      reconstructed={c=num(a[1]),z=num(a[2]),i=num(a[3]),xy={x=num(a[4])/10000,y=num(a[5])/10000},iz=num(a[6]),dt=num(a[7]),q=num(a[8]),it=num(a[9]),ist=num(a[10]),itemName=a[11]}
+    end
+    local checkId,checkFp=reconstructed and encode(sec,reconstructed)
+    if checkId~=id or checkFp~=fp then return end
+    self:Apply(sec,content,sender)
+    self:Queue({"ACK",sec,id,fp})
+  elseif kind=="ACK" then
+    -- ACK is intentionally informational. No rebroadcast on acknowledgment.
+    return
+  end
+end
+function S:OnChannel(_,message,sender,_,channelName)
+  if type(channelName)~="string" or channelName:upper()~=CHANNEL then return end
+  self:Accept(sender,message)
+end
+function S:OnLeave()
+  self.readyAt=math.huge
+  self.outgoing={first=1,last=0};self.pending={}
+  self.incoming={first=1,last=0}
+end
+function S:OnEnter()
+  self.readyAt=clock()+START_DELAY
+  self.sentSession=0
+  self:Rebuild()
+end
+function S:OnUpdate(elapsed)
+  self.tick=(self.tick or 0)+elapsed
+  if self.tick<0.1 then return end
+  self.tick=0
+  if not enabled() or clock()<self.readyAt then return end
+  if self.scanning then self:ScanStep();return end
+  local t=clock()
+  if t-self.lastHello>HELLO_INTERVAL then
+    self:Queue({"HELLO","3"})
+    self.lastHello=t
+  end
+  -- Bounded CPU processing; never drain an untrusted burst in one frame.
+  local start=debugprofilestop and debugprofilestop() or 0
+  for i=1,3 do
+    if debugprofilestop and debugprofilestop()-start>2 then break end
+    local packet=pop(self.incoming)
+    if not packet then break end
+    self:Process(packet.sender,packet.wire)
+  end
+  if t-self.lastSent<SEND_INTERVAL or self.sentSession>=SESSION_LIMIT then return end
+  local id=channelID()
+  if id<=0 or not SendChatMessage then return end
+  local packet=pop(self.outgoing)
+  if not packet then return end
+  self.pending[packet.key]=nil
+  -- No hidden chat-channel joins; Comm owns BBLC25C independently.
+  SendChatMessage(packet.wire,"CHANNEL",nil,id)
+  self.lastSent=t;self.sentSession=self.sentSession+1;self.stats.sent=self.stats.sent+1
+end
+function S:OnInitialize()
+  self:RegisterEvent("CHAT_MSG_CHANNEL","OnChannel")
+  self:RegisterEvent("PLAYER_LEAVING_WORLD","OnLeave")
+  self:RegisterEvent("PLAYER_ENTERING_WORLD","OnEnter")
+  local frame=CreateFrame("Frame")
+  frame:SetScript("OnUpdate",function(_,elapsed) S:OnUpdate(elapsed) end)
+  self.frame=frame
+  self:OnEnter()
+end
