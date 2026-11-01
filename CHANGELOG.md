@@ -1,3 +1,6 @@
+## v1.0.12 — Loading progress chat
+- Added visible startup stages and completion notices for core, database, shared channel and SmartSync.
+
 # Changelog
 
 All published versions and downloadable packages are listed under [Releases](https://github.com/uncle-bone/LootCollector/releases).
