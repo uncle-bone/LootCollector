@@ -27,7 +27,7 @@ local function ChatFilter(_, _, msg, _, _, _, _, _, _, _, channelName)
         return false
     end
     
-    if type(msg) == "string" and msg:match("^LC[1-5]:") then
+    if type(msg) == "string" and (msg:match("^LC[1-5]:") or msg:match("^LCS3;")) then
         return true
     end
     
