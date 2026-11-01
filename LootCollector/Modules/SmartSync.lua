@@ -13,7 +13,7 @@ local function enabled()
   return p and p.sharing and p.sharing.enabled ~= false and p.sharing.publicChannelEnabled ~= false and p.sharing.smartSyncV3 ~= false
 end
 local function tidy(v, limit)
-  return tostring(v or ""):gsub("[%c;~]", " "):sub(1, limit or 50)
+  return tostring(v or ""):gsub("[%c;~|]", " "):sub(1, limit or 50)
 end
 local function num(v) return tonumber(v) or 0 end
 local function int(v) return math.floor(num(v) + 0.5) end
@@ -230,7 +230,7 @@ function S:Process(sender,wire)
     local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
     if not sec or #id~=8 or #fp~=8 or self.scanning then return end
     local localRec=self.index[sec] and self.index[sec][id]
-    if (not localRec or localRec.fp~=fp) and p.requests<16 then
+    if (not localRec or localRec.fp<fp) and p.requests<16 then
       p.requests=p.requests+1
       self:Queue({"REQUEST",sec,id,fp})
     end
