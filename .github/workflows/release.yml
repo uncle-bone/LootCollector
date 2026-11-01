@@ -40,6 +40,21 @@ jobs:
               f.write('ASSET='+str(artifact)+'\n')
               f.write('PRERELEASE='+str(cfg['prerelease']).lower()+'\n')
           PY
+      - name: Validate SmartSync Lua 5.1 syntax and TOC references
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lua5.1
+          luac5.1 -p LootCollector/Modules/SmartSync.lua
+          python3 - <<'PY'
+          import pathlib
+          for folder in ('LootCollector','LootCollector_CustomImport','LootCollector_StarterDB'):
+              for toc in pathlib.Path(folder).glob('*.toc'):
+                  for raw in toc.read_text(encoding='utf-8-sig').splitlines():
+                      line=raw.strip()
+                      if not line or line.startswith('#'): continue
+                      target=toc.parent / line.replace('\\','/')
+                      assert target.is_file(), f'Missing TOC file: {toc}: {line}'
+          PY
       - name: Publish release and ZIP
         env:
           GH_TOKEN: ${{ github.token }}
