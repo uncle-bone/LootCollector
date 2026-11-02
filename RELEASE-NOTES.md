@@ -1,8 +1,8 @@
-# LootCollector v1.0.17 — Mapster and Discoveries performance hotfix
+# LootCollector v1.0.19 — World map compatibility
 
-- Anchor map filter button to the world map frame rather than transformed Mapster controls.
-- Move and constrain sync status so it does not overlap Discoveries filters.
-- Avoid expensive Worldforged upgrade scans on each Discoveries item hover.
-- Keep normal item tooltips and existing SavedVariables intact.
+- Reposition map filter button using live map-frame and chrome coordinates for stock Blizzard, Mapster, DragonUI WorldMap and ElvUI.
+- Keep button inside map bounds and away from title-bar buttons, including resized maps.
+- Throttle map chrome layout checks to every 350 ms rather than every frame.
+- Preserve all discovery records, map pins and settings.
 
-Development prerelease; live Mapster and FPS testing required.
+Development prerelease; in-game testing required for each map addon.
