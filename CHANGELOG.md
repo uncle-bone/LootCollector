@@ -1,3 +1,7 @@
+## 1.0.19 — Map compatibility
+
+- Dynamic map button placement for Blizzard stock map, Mapster, DragonUI WorldMap and ElvUI, with throttled layout updates.
+
 ## 1.0.17 — Mapster and Discoveries performance
 
 - Correct map button anchoring, constrain sync status layout, avoid expensive item-hover scans.
