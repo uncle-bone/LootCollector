@@ -1,3 +1,8 @@
+## 1.0.13 — CoASync development preview
+
+- CoASync migration, self-echo filtering, channel-visibility safety, SmartSync diagnostics, settings controls.
+- Existing data and map marker structures retained; in-game validation required.
+
 ## CoA v1.0.12 — Loading progress chat
 - Added core and SmartSync startup stage and completion messages without extra discovery scans.
 - Preserved delayed startup indexing and existing discovery data.
