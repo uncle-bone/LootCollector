@@ -2503,7 +2503,7 @@ function LootCollector:DelayedChannelInit()
     -- during startup: Questie and DBM also use this shared channel.
     local Comm = self:GetModule("Comm", true)
     if not Comm then return end
-    local DELAY_SECONDS = 35.0
+    local DELAY_SECONDS = 20.0
     self._sharedChannelSafeAfter = GetTime() + DELAY_SECONDS
     self:ScheduleAfter(DELAY_SECONDS, function()
         LootCollector.channelReady = true
