@@ -591,7 +591,17 @@ local function OnTooltipSetItem(tooltip)
     if Core and Core.isSB and Core:isSB() then
         return
     end
-    if inHandler then return end\n    -- The discovery browser renders many item rows; do not synchronously\n    -- scan every upgrade tier when a user hovers a browser row.\n    local owner = tooltip.GetOwner and tooltip:GetOwner()\n    local viewer = _G.LootCollectorViewerWindow\n    local node, depth = owner, 0\n    while node and depth < 8 do\n        if node == viewer then return end\n        node = node.GetParent and node:GetParent()\n        depth = depth + 1\n    end
+    if inHandler then return end
+    -- The discovery browser renders many item rows; do not synchronously
+    -- scan every upgrade tier when a user hovers a browser row.
+    local owner = tooltip.GetOwner and tooltip:GetOwner()
+    local viewer = _G.LootCollectorViewerWindow
+    local node, depth = owner, 0
+    while node and depth < 8 do
+        if node == viewer then return end
+        node = node.GetParent and node:GetParent()
+        depth = depth + 1
+    end
 
     if not (L and L.db and L.db.profile and L.db.profile.enhancedWFTooltip) then
         return
