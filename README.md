@@ -43,3 +43,7 @@ Built for the older **Interface 30300** client, not retail WoW. Map overlays may
 CoA adaptation maintained by **Uncle Bone** ([GitHub](https://github.com/uncle-bone)). Original LootCollector by **Skulltrail** and contributors; retain their original notices and licensing. Community project, not an official Ascension addon.
 
 **Feedback:** [Open an issue](https://github.com/uncle-bone/LootCollector/issues) with your installed version, UI/map addons and reproduction steps.
+
+
+### CoASync development preview (v1.0.13)
+Sharing now uses the shared CoASync channel, with a compact SmartSync status panel in settings. Local discoveries remain available when sharing is disabled. This is a prerelease requiring in-game compatibility testing.
