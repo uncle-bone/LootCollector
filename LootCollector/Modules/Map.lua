@@ -1992,11 +1992,10 @@ end
 
 local function PlaceFilterButton(btn)
   if not btn or not WorldMapFrame then return end
+  -- Mapster can move/scale its own chrome. Anchor to the map frame itself,
+  -- never to a Mapster button whose parent/coordinates may be transformed.
   btn:ClearAllPoints()
-  local anchor, myPoint, relPoint, x, y = GetFilterButtonChromeAnchor()
-  if anchor then
-    btn:SetPoint(myPoint, anchor, relPoint, x, y)
-  end
+  btn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -65, -4)
 end
 
 function Map:EnsureFilterUI()
