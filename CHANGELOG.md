@@ -1,3 +1,7 @@
+## 1.0.16 — About panel metadata
+
+- Correct in-game version, maintainer, contact, and repository link; preserve upstream credits.
+
 ## 1.0.15 — CoASync chat visibility
 
 - Guarded 20-second startup and automatic CoASync chat-tab hiding.
