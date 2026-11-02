@@ -1,53 +1,58 @@
 # LootCollector CoA
 
-> **[⬇ Download v1.0.12 — Current stable release](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.12/LootCollector-v1.0.12.zip)**
+> **[⬇ Download v1.0.16 — Current stable release](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.16/LootCollector-v1.0.16.zip)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.16)
 
-**Discover, map, track and share Worldforged loot, rare creatures and treasure chests in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a).**
+**Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
-**Current stable release: v1.0.12 — loading progress and SmartSync readiness messages.** [Download the current ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.12/LootCollector-v1.0.12.zip) · [Report issues](https://github.com/uncle-bone/LootCollector/issues)
+Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
 
-## What it does
+## Current stable release: v1.0.16
 
-- **Worldforged discoveries:** View and search collected or community-reported items, loot locations, map and minimap pins, item details and filters.
-- **Rare creatures and treasure:** Track supported rare sightings, chest discoveries, known locations and observed drops; browse the Chests/Rares viewer.
-- **Guidance:** Choose reported destinations with direction/distance guidance and optional TomTom integration where supported.
-- **Learning:** Persist supported sightings and loot observations, suppress duplicates and improve local records as data is collected.
-- **Community sharing:** Exchange compatible discoveries over **BBLC25C**. Questie-X and DBM-CoA may use the same channel with their own message formats.
-- **Companion datasets:** Optional starter database and custom import module included with the package.
+The About panel now displays the installed version, Uncle Bone as maintainer, the official GitHub contact, and the repository link. This release includes the current CoASync sharing build: it waits 20 seconds after login before safely joining and hides the channel from chat while preserving existing channel memberships.
 
-**Important:** Discovery pins represent reported locations, not guaranteed current spawns. Respawn estimates and observed loot lists are not authoritative. Some custom entities may not be detected automatically.
+Existing discoveries, map features, and SavedVariables are preserved. At last in-game status check, the client was on CoASync channel /6 with no compatible peers detected, so cross-player synchronization still needs confirmation with another LootCollector user online.
 
-## v1.0.12 — Loading progress
+## Features
 
-The release announces saved-discovery initialization, starter database lookup, core startup, shared-channel readiness, SmartSync indexing and sharing readiness. Indexing stays deferred for 45 seconds and processes five records per tick. Notices are throttled. In-game verification is still needed.
+- Browse and search collected or community-reported Worldforged items, loot locations, rare sightings, and treasure chests.
+- View map and minimap pins, item details, filters, and direction/distance guidance; TomTom integration is optional.
+- Save supported sightings and loot observations locally, with duplicate suppression.
+- Share compatible discoveries through **CoASync** with other compatible, online clients.
+- Optional starter database and custom import addon are included.
 
-## v1.0.9 — What changed
+Discovery pins are community reports, not guaranteed current spawns. Respawn estimates and observed loot lists are not authoritative.
 
-This release restores the earlier map implementation following marker regressions in v1.0.7–v1.0.8. It preserves the existing viewer, rare/chest tracking, Worldforged records, BBLC25C integration, and companion datasets. **The rollback is not a verified fix for every ElvUI or map-stack issue**; test map icons with your enabled UI addons. The release does **not** introduce a newly verified database of all rare spawns or complete loot tables.
+## Recent changes
+
+### v1.0.16 — About panel metadata
+
+- Show the current version and official maintainer/contact/repository details in the in-game About panel.
+- Correct the About panel link to the official `uncle-bone/LootCollector` repository.
+- Preserve original author and contributor credits.
+
+### v1.0.15 — CoASync channel handling
+
+- Wait 20 seconds after startup before attempting to join CoASync.
+- Hide the channel from chat by default while preserving existing channel memberships.
+
+### v1.0.12 — Loading progress
+
+- Announce saved-discovery initialization, starter database lookup, core startup, channel readiness, SmartSync indexing, and sharing readiness.
+- Defer indexing for 45 seconds and process five records per tick; throttle notices.
 
 ## Installation
 
 1. Back up `LootCollectorDB_Asc` from SavedVariables before updating.
-2. Download the appropriate [release ZIP](https://github.com/uncle-bone/LootCollector/releases).
-3. Extract **three sibling addon folders** to `Interface/AddOns/`: `LootCollector`, `LootCollector_CustomImport` and `LootCollector_StarterDB`.
-4. Restart Conquest Reborn, enable the addons and open the LootCollector viewer.
+2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.16/LootCollector-v1.0.16.zip).
+3. Extract these **three sibling folders** into `Interface/AddOns/`: `LootCollector`, `LootCollector_CustomImport`, and `LootCollector_StarterDB`.
+4. Restart Conquest Reborn and enable the addons.
 
-Do not nest companion folders inside `LootCollector`. Preserve saved discoveries when replacing addon files.
+Do not nest companion folders inside `LootCollector`. Keep your SavedVariables when replacing addon files.
 
-## Compatibility / known limitations
+## Compatibility and support
 
-Built for the older **Interface 30300** client, not retail WoW. Map overlays may interact with ElvUI-CoA, DragonUI, Mapster/Magnify, ConquestWorldMapImprovement, and other world-map modifications. The v1.0.9 rollback prioritizes restored marker visibility; compatibility across every combination remains unverified. BBLC25C sharing requires other compatible, online players. Treat learned data as community observations subject to mistakes.
+Built for the older Interface 30300 client, not retail WoW. Map overlays can interact with ElvUI-CoA, DragonUI, Mapster/Magnify, ConquestWorldMapImprovement, and other map modifications; every combination has not been validated. CoASync sharing requires compatible players online.
 
-## Maintenance and credits
+## Credits and licensing
 
-CoA adaptation maintained by **Uncle Bone** ([GitHub](https://github.com/uncle-bone)). Original LootCollector by **Skulltrail** and contributors; retain their original notices and licensing. Community project, not an official Ascension addon.
-
-**Feedback:** [Open an issue](https://github.com/uncle-bone/LootCollector/issues) with your installed version, UI/map addons and reproduction steps.
-
-
-### CoASync development preview (v1.0.13)
-Sharing now uses the shared CoASync channel, with a compact SmartSync status panel in settings. Local discoveries remain available when sharing is disabled. This is a prerelease requiring in-game compatibility testing.
-
-
-### v1.0.14 sharing queue hotfix
-Legacy outgoing shares now drain at bounded intervals when CoASync is healthy. The separate SmartSync v3 queue remains unchanged.
+CoA adaptation maintained by **Uncle Bone**. Original LootCollector by **Skulltrail** and contributors; retain the included license notices and original credits. Community project, not an official Ascension addon.
