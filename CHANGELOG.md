@@ -1,3 +1,8 @@
+## 1.0.13 — CoASync development preview
+
+- CoASync migration, self-echo filtering, channel-visibility safety, SmartSync diagnostics, settings controls.
+- Existing data and map marker structures retained; in-game validation required.
+
 ## v1.0.12 — Loading progress chat
 - Added visible startup stages and completion notices for core, database, shared channel and SmartSync.
 
