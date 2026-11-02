@@ -63,8 +63,13 @@ jobs:
           args=()
           if [ "$PRERELEASE" = true ]; then args+=(--prerelease --latest=false); else args+=(--latest); fi
           if gh release view "$VERSION" >/dev/null 2>&1; then
-            echo "::error::Release already exists; refusing to overwrite it"
-            exit 1
+            # Existing release: update status only, never overwrite published ZIP.
+            if [ "$PRERELEASE" = true ]; then
+              gh release edit "$VERSION" --prerelease --latest=false
+            else
+              gh release edit "$VERSION" --prerelease=false --latest
+            fi
+            exit 0
           fi
           gh release create "$VERSION" "$ASSET" --target "$GITHUB_SHA" --title "${GITHUB_REPOSITORY#*/} $VERSION" --notes-file RELEASE-NOTES.md "${args[@]}"
 
