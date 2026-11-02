@@ -1,3 +1,7 @@
+## 1.0.17 — Mapster and Discoveries performance
+
+- Correct map button anchoring, constrain sync status layout, avoid expensive item-hover scans.
+
 ## 1.0.16 — About panel metadata
 
 - Correct in-game version, maintainer, contact, and repository link; preserve upstream credits.
