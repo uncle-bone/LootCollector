@@ -1992,10 +1992,36 @@ end
 
 local function PlaceFilterButton(btn)
   if not btn or not WorldMapFrame then return end
-  -- Mapster can move/scale its own chrome. Anchor to the map frame itself,
-  -- never to a Mapster button whose parent/coordinates may be transformed.
+  -- Stock, Mapster, DragonUI WorldMap and ElvUI can replace map chrome.
+  -- Use the actual map's title controls only if their screen coordinates
+  -- overlap its title strip. Never anchor to a transformed/zoomed map canvas.
+  local map = WorldMapFrame
+  local left, right, top = map:GetLeft(), map:GetRight(), map:GetTop()
+  local scale = map:GetEffectiveScale() or 1
+  if not left or not right or not top or scale <= 0 then return end
+  local width = btn:GetWidth() or 110
+  local targetRight = right - 8 * scale
+  local candidates = {
+    "WorldMapFrameCloseButton", "WorldMapFrameSizeDownButton",
+    "WorldMapFrameSizeUpButton", "MapsterOptionsButton",
+    "MapsterButton", "MapsterWorldMapButton", "MapsterToggle",
+  }
+  for _, name in ipairs(candidates) do
+    local f = _G[name]
+    if f and f ~= btn and f.IsShown and f:IsShown() and f.GetLeft and f.GetTop then
+      local fl, ft, fb = f:GetLeft(), f:GetTop(), f:GetBottom()
+      if fl and ft and fb and fl >= left and fl <= right
+          and ft <= top + 12 * scale and fb >= top - 40 * scale then
+        targetRight = math.min(targetRight, fl - 6 * scale)
+      end
+    end
+  end
+  -- Keep the entire button inside the map, including small DragonUI/ElvUI maps.
+  targetRight = math.max(left + (width + 8) * scale, targetRight)
+  targetRight = math.min(right - 8 * scale, targetRight)
+  local x = (targetRight - right) / scale
   btn:ClearAllPoints()
-  btn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -65, -4)
+  btn:SetPoint("TOPRIGHT", map, "TOPRIGHT", x, -5)
 end
 
 function Map:EnsureFilterUI()
@@ -2026,7 +2052,11 @@ function Map:EnsureFilterUI()
     local poller = CreateFrame("Frame", nil, WorldMapFrame)
     poller.lastVisible = nil
     poller.lastChromeKey = nil
-    poller:SetScript("OnUpdate", function(self)
+    poller.elapsed = 0
+    poller:SetScript("OnUpdate", function(self, elapsed)
+        self.elapsed = (self.elapsed or 0) + (elapsed or 0)
+        if self.elapsed < 0.35 then return end
+        self.elapsed = 0
         if not WorldMapFrame or not FilterButton then return end
 
         local isVisible = WorldMapFrame:IsShown() and true
@@ -2044,11 +2074,9 @@ function Map:EnsureFilterUI()
                 end
             end
         elseif isVisible then
-            local chromeKey = FilterButtonChromeKey()
-            if self.lastChromeKey ~= chromeKey then
-                self.lastChromeKey = chromeKey
-                PlaceFilterButton(FilterButton)
-            end
+            -- Other map addons reposition their chrome after OnShow.
+            -- Re-evaluate periodically, without per-frame layout work.
+            PlaceFilterButton(FilterButton)
         end
     end)
 
