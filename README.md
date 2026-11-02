@@ -55,7 +55,7 @@ Discovery pins are community reports, not guaranteed current spawns. Respawn est
 ## Installation
 
 1. Back up `LootCollectorDB_Asc` from SavedVariables before updating.
-2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.19/LootCollector-v1.0.19.zip).
+2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/latest).
 3. Extract these **three sibling folders** into `Interface/AddOns/`: `LootCollector`, `LootCollector_CustomImport`, and `LootCollector_StarterDB`.
 4. Restart Conquest Reborn and enable the addons.
 
