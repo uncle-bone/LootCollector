@@ -1,3 +1,7 @@
+## 1.0.15 — CoASync chat visibility
+
+- Guarded 20-second startup and automatic CoASync chat-tab hiding.
+
 ## 1.0.14 — Stuck outgoing shares hotfix
 
 - Reduced excessive legacy sharing interval; added channel-health and send guards.
