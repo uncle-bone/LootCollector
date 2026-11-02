@@ -892,8 +892,30 @@ function Comm:EnsureChannelJoined()
         local safe = type(firstId) == "number" and firstId > 0
             and type(firstName) == "string" and firstName ~= ""
             and firstName:lower() ~= ch:lower()
-        if L._sharedChannelSafeAfter and GetTime() >= L._sharedChannelSafeAfter and safe then
-            JoinChannelByName(ch)
+        -- Require two stable snapshots before joining. Never leave or renumber channels.
+        local snapshot = {}
+        for slot=1,10 do
+            local sid,sname=GetChannelName(slot)
+            if type(sid)=="number" and sid>0 and type(sname)=="string" then
+                snapshot[#snapshot+1]=tostring(sid)..":"..sname:lower()
+            end
+        end
+        local signature=table.concat(snapshot,"|")
+        local t=GetTime()
+        if signature~=self._safeChannelSnapshot then
+            self._safeChannelSnapshot=signature
+            self._safeChannelSince=t
+            safe=false
+        end
+        -- Leave a spare slot for game channels and avoid late startup races.
+        if #snapshot>=9 or t-(self._safeChannelSince or t)<3 then safe=false end
+        if L._sharedChannelSafeAfter and t >= L._sharedChannelSafeAfter and safe
+            and (not self._joinRetryAt or t>=self._joinRetryAt)
+            and not self._channelUnsafe and (self._joinAttempts or 0)<3 then
+            self._joinAttempts=(self._joinAttempts or 0)+1
+            self._joinRetryAt=t+30
+            local ok=pcall(JoinChannelByName,ch)
+            if not ok then self._channelUnsafe=true end
         end
     end
     
