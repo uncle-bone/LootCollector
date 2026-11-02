@@ -114,7 +114,7 @@ local function compareVersions(v1, v2)
 end
 
 Comm.addonPrefix = L.addonPrefix or "BBLC25AM"
-Comm.channelName = L.chatChannel or "BBLC25C"
+Comm.channelName = L.chatChannel or "CoASync"
 Comm.channelId = 0
 
 Comm.chatMinInterval = 3.50
@@ -854,18 +854,7 @@ function Comm:EnqueueOutgoingSync(wire)
 end
 
 function Comm:HideChannelFromChat()
-    if L.db and L.db.profile and L.db.profile.chatDebug then return end
-    
-    local channelName = self.channelName or "BBLC25C"
-    
-    for i = 1, 10 do
-        local chatFrame = _G["ChatFrame" .. i]
-        if chatFrame and chatFrame:IsShown() then
-            if ChatFrame_RemoveChannel then		
-                ChatFrame_RemoveChannel(chatFrame, channelName)		    
-            end
-        end
-    end
+    -- Shared channel visibility belongs to the player; never modify chat frames.
 end
 
 function Comm:EnsureChannelJoined()
@@ -894,7 +883,7 @@ function Comm:EnsureChannelJoined()
         return 
     end
     
-    local ch = "BBLC25C" -- all three addons independently reuse this one channel
+    local ch = "CoASync" -- all three addons independently reuse this one channel
        
     local id, name = GetChannelName(ch)
     if not (id and id > 0) then
@@ -937,7 +926,7 @@ function Comm:JoinPublicChannel(isManual)
 end
 
 function Comm:LeavePublicChannel()
-    -- Other CoA addons share BBLC25C; disabling LC sharing must not evict them.
+    -- Other CoA addons share CoASync; disabling LC sharing must not evict them.
     self.channelId = 0
 end
 
