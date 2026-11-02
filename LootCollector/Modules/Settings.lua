@@ -1221,6 +1221,35 @@ local function buildOptions()
 						get = function() return L.db.profile.sharing.syncNotifications ~= false end,
 						set = function(_, value) L.db.profile.sharing.syncNotifications = value end,
 					},
+                    syncStatus = {
+                        type = "description", name = function()
+                            local sync = L:GetModule("SmartSync", true)
+                            if not sync or not sync.GetStatus then return "CoASync: initializing" end
+                            local st = sync:GetStatus()
+                            local x = st.stats
+                            return string.format("CoASync /%d | %s | Schema %d Protocol %d | %s (%d records) | Peers %d | Queue %d/%d | Sent %d Received %d Imported %d Duplicates %d Throttled %d",
+                                st.channel, st.identity, st.schema, st.protocol,
+                                st.building and "Building" or (st.ready and "Ready" or "Waiting"),
+                                st.records, st.peers, st.outgoing, st.incoming,
+                                x.sent, x.received, x.updated, x.duplicates, x.throttled)
+                        end, order = 10.31, fontSize = "medium",
+                    },
+                    syncHello = {
+                        type = "execute", name = "Send CoASync Hello", order = 10.32,
+                        func = function()
+                            local sync = L:GetModule("SmartSync", true)
+                            if sync then sync:Queue({"HELLO","3"}) end
+                        end,
+                    },
+                    syncDiagnostics = {
+                        type = "execute", name = "Print Sync Diagnostics", order = 10.33,
+                        func = function()
+                            local sync = L:GetModule("SmartSync", true)
+                            if not sync or not sync.GetStatus then return end
+                            local st=sync:GetStatus()
+                            print("LootCollector CoASync: /"..st.channel.." "..st.identity.." schema="..st.schema.." protocol="..st.protocol.." peers="..st.peers.." pending="..st.outgoing.." incoming="..st.incoming)
+                        end,
+                    },
 					publicChannelEnabled = {
 						type = "toggle",
 						name = "Enable Public Channel Sync",
