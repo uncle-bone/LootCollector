@@ -9,7 +9,7 @@ _G.LootCollector = LootCollector
 BINDING_HEADER_LOOTCOLLECTOR = GetAddOnMetadata(..., "Title")
 LootCollector.LEGACY_MODE_ACTIVE = true
 LootCollector.addonPrefix = "BBLC25AM"
-LootCollector.chatChannel = "BBLC25C"
+LootCollector.chatChannel = "CoASync"
 LootCollector.DEBUG_MODE = false
 
 -- PERF: profiler now defaults OFF. It wraps nearly every function in the
@@ -2150,7 +2150,7 @@ function LootCollector:OnInitialize()
         self.chatChannel = Constants:GetDefaultChannel()
         self.addonPrefix = Constants:GetDefaultPrefix()
     else
-        self.chatChannel = "BBLC25C"
+        self.chatChannel = "CoASync"
         self.addonPrefix = "BBLC25AM"
     end
 
@@ -2499,7 +2499,7 @@ function LootCollector:IsZoneIgnored()
 end
 
 function LootCollector:DelayedChannelInit()
-    -- Preserve existing membership and numbering. Never leave/rejoin BBLC25C
+    -- Preserve existing membership and numbering. Never leave/rejoin CoASync
     -- during startup: Questie and DBM also use this shared channel.
     local Comm = self:GetModule("Comm", true)
     if not Comm then return end
