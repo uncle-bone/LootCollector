@@ -74,7 +74,7 @@ local function pop(q)
 end
 S.outgoing={first=1,last=0}; S.incoming={first=1,last=0}
 S.pending={}; S.peer={}; S.index={}; S.order={}; S.sum={}
-S.stats={updated=0,sent=0,dropped=0}
+S.stats={updated=0,sent=0,received=0,dropped=0,invalid=0,duplicates=0,throttled=0,ack=0}
 S.readyAt=math.huge;S.lastSent=0;S.sentSession=0;S.lastHello=0
 local function say(msg)
   if L.db and L.db.profile and L.db.profile.sharing and L.db.profile.sharing.syncNotifications == false then return end
@@ -182,13 +182,14 @@ function S:Accept(sender, wire)
   local t=clock()
   if not p then p={start=t,count=0,last=0,requests=0};self.peer[sender]=p end
   if t-p.start>=60 then p.start=t;p.count=0;p.requests=0;p.responses=0;p.seen={} end
-  if p.count>=20 then return end
+  if p.count>=20 then self.stats.throttled=self.stats.throttled+1; return end
   p.count=p.count+1
+  p.lastActivity=t
   p.seen=p.seen or {}
-  if p.seen[wire] and t-p.seen[wire]<90 then return end
+  if p.seen[wire] and t-p.seen[wire]<90 then self.stats.duplicates=self.stats.duplicates+1; return end
   if p.count==1 then p.seen={} end
   p.seen[wire]=t
-  push(self.incoming,{sender=sender,wire=wire},MAX_IN)
+  if push(self.incoming,{sender=sender,wire=wire},MAX_IN) then self.stats.received=self.stats.received+1 else self.stats.dropped=self.stats.dropped+1 end
 end
 function S:Apply(sec, content, sender)
   if type(content)~="string" or #content>190 then return end
@@ -243,7 +244,7 @@ function S:Process(sender,wire)
     local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
     if not sec or #id~=8 or #fp~=8 or self.scanning then return end
     local localRec=self.index[sec] and self.index[sec][id]
-    if (not localRec or localRec.fp<fp) and p.requests<16 then
+    if (not localRec or localRec.fp<fp) and (p.requests or 0)<16 then
       p.requests=p.requests+1
       self:Queue({"REQUEST",sec,id,fp})
     end
@@ -272,12 +273,13 @@ function S:Process(sender,wire)
     self:Apply(sec,content,sender)
     self:Queue({"ACK",sec,id,fp})
   elseif kind=="ACK" then
+    self.stats.ack=self.stats.ack+1
     -- ACK is intentionally informational. No rebroadcast on acknowledgment.
     return
   end
 end
 function S:OnChannel(_,message,sender,_,channelName)
-  if type(channelName)~="string" or channelName:upper()~=CHANNEL then return end
+  if type(channelName)~="string" or channelName:lower()~=CHANNEL:lower() then return end
   self:Accept(sender,message)
 end
 function S:OnLeave()
@@ -355,8 +357,14 @@ function S:OnUpdate(elapsed)
     self.pending[packet.key]=true
     return
   end
-  SendChatMessage(packet.wire,"CHANNEL",nil,id)
-  self.lastSent=t;self.sentSession=self.sentSession+1;self.stats.sent=self.stats.sent+1
+  local ok = pcall(SendChatMessage,packet.wire,"CHANNEL",nil,id)
+  self.lastSent=t
+  if ok then self.sentSession=self.sentSession+1;self.stats.sent=self.stats.sent+1 else self.stats.dropped=self.stats.dropped+1 end
+end
+function S:GetStatus()
+  local peers=0
+  for _,p in pairs(self.peer) do if clock()-(p.lastActivity or 0)<300 then peers=peers+1 end end
+  return {channel=channelID(),identity="LootCollector-Discovery-v1",schema=1,protocol=3,building=self.scanning,ready=not self.scanning and not self.scanAt,records=self.scanCount or 0,peers=peers,outgoing=queueLength(self.outgoing),incoming=queueLength(self.incoming),stats=self.stats}
 end
 function S:OnInitialize()
   self:RegisterEvent("CHAT_MSG_CHANNEL","OnChannel")
