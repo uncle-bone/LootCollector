@@ -2,7 +2,7 @@
 -- WoW 3.3.5a / Lua 5.1. Protocol intentionally distinct from LCDB1, LCR1 and Questie.
 local L = LootCollector
 local S = L:NewModule("SmartSync", "AceEvent-3.0")
-local PREFIX, CHANNEL = "LCS3", "BBLC25C"
+local PREFIX, CHANNEL = "LCS3", "CoASync"
 local SECTIONS = {"W", "V", "R", "C"}
 local MAX_WIRE, MAX_QUEUE, MAX_IN = 225, 96, 96
 local SEND_INTERVAL, START_DELAY, HELLO_INTERVAL = 4, 10, 300
@@ -336,7 +336,7 @@ function S:OnUpdate(elapsed)
   if not packet then return end
   if t < packet.due then push(self.outgoing,packet,MAX_QUEUE); return end
   self.pending[packet.key]=nil
-  -- No hidden chat-channel joins; Comm owns BBLC25C independently.
+  -- No hidden chat-channel joins; Comm owns CoASync independently.
   if InCombatLockdown and InCombatLockdown() then
     push(self.outgoing,packet,MAX_QUEUE)
     self.pending[packet.key]=true
