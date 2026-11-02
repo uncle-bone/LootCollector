@@ -1,9 +1,8 @@
-# LootCollector v1.0.14 — Stuck Outgoing Shares Hotfix
+# LootCollector v1.0.15 — CoASync chat visibility
 
-- Fix legacy outgoing share queue taking two minutes per record even on an idle channel, or up to an hour under congestion.
-- Pace legacy broadcasts at 8–60 seconds, while retaining existing rate-limit and backpressure queues.
-- Only drain outgoing discovery records when CoASync is healthy and sharing is not auto-paused.
-- Guard raw chat sends against oversized payloads and Lua errors.
-- Preserve all existing discoveries, SavedVariables, and map markers.
+- Match DBM's 20-second guarded CoASync startup grace.
+- Automatically hide only the CoASync channel from chat tabs once joined, unless chat debug is enabled.
+- Preserve channel membership and numbering, including /1 General; do not leave or replace channels.
+- Preserve discovery data and all map pins.
 
-Development prerelease. Live in-game queue draining still requires verification.
+Development prerelease; in-game testing required.
