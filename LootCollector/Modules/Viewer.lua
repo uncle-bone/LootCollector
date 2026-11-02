@@ -4419,7 +4419,7 @@ function Viewer:UpdateSyncStatus()
 
     if self.syncStatusHit then
         local w = self.syncStatusText:GetStringWidth() or 0
-        self.syncStatusHit:SetWidth(math.max(60, w + 8))
+        self.syncStatusHit:SetWidth(math.min(125, math.max(60, w + 8)))
         self.syncStatusHit:Show()
         if GameTooltip:IsOwned(self.syncStatusHit) then
             self:ShowSyncStatusTooltip(self.syncStatusHit)
@@ -5588,14 +5588,14 @@ beta-0.8.6r:
 
     local syncStatusHit = CreateFrame("Frame", nil, window)
     syncStatusHit:SetSize(120, BUTTON_HEIGHT)
-    syncStatusHit:SetPoint("LEFT", refreshDataBtn, "RIGHT", 10, 0)
+    syncStatusHit:SetPoint("TOPRIGHT", window, "TOPRIGHT", -75, -79)
     syncStatusHit:SetFrameStrata(FRAME_STRATA)
     syncStatusHit:SetFrameLevel(FRAME_LEVEL + 2)
     syncStatusHit:EnableMouse(true)
 
     local syncStatusText = syncStatusHit:CreateFontString(nil, "OVERLAY", UI_FONT_NAME)
     syncStatusText:SetPoint("LEFT", syncStatusHit, "LEFT", 0, 0)
-    syncStatusText:SetJustifyH("LEFT")
+    syncStatusText:SetJustifyH("LEFT")\n    syncStatusText:SetWidth(125)\n    syncStatusText:SetWordWrap(false)
     syncStatusText:SetText("")
     self.syncStatusText = syncStatusText
     self.syncStatusHit = syncStatusHit
