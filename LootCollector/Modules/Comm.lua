@@ -854,7 +854,13 @@ function Comm:EnqueueOutgoingSync(wire)
 end
 
 function Comm:HideChannelFromChat()
-    -- Shared channel visibility belongs to the player; never modify chat frames.
+    local id, name = GetChannelName("CoASync")
+    if not (type(id) == "number" and id > 0 and type(name) == "string" and name:lower() == "coasync") then return end
+    if type(ChatFrame_RemoveChannel) ~= "function" then return end
+    for i = 1, (NUM_CHAT_WINDOWS or 10) do
+        local frame = _G["ChatFrame"..i]
+        if frame then pcall(ChatFrame_RemoveChannel, frame, name) end
+    end
 end
 
 function Comm:EnsureChannelJoined()
@@ -919,12 +925,8 @@ function Comm:EnsureChannelJoined()
         end
     end
     
-    if p.chatDebug then
-        -- Preserve the player's existing chat-frame channel visibility.
-    else    
-        -- Do not alter chat-frame channel visibility automatically.
-    end
-    
+    if not p.chatDebug then self:HideChannelFromChat() end
+
     self:IsChannelHealthy()
 
     if pTime then L:ProfileStop("Comm:EnsureChannelJoined", pTime) end 
@@ -3158,7 +3160,7 @@ function Comm:OnInitialize()
                 end
                 _onChatMsgChannel(_, event, ...)
             elseif event == "CHAT_MSG_CHANNEL_NOTICE" then
-                Comm:IsChannelHealthy()
+                if Comm:IsChannelHealthy() then Comm:HideChannelFromChat() end
             end
         end)
     end	    
