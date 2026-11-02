@@ -1764,7 +1764,7 @@ local function buildOptions()
 				args = {
 					intro_text = {
 						type = "description",
-						name = "Hi there!\n\nThis addon was created by Skulltrail originally, his first-ever WoW addon!\n\nA huge thank you to all the contributors for their hard work and support. This addon wouldn't be possible without your help!\nSpecial thanks to: |cffFFD700Deidre, Rhenyra, Morty, Markosz, Bandit Tech, xan, Stilnight, Xurkon, Netherborne, Liakate, Jollyg7|r, and all the community helpers out there.\n\nI would also like to extend a special thank you to |cffFFD700@ERitzman|r for being our first-ever LootCollector sponsor!\n\nContact: Discord @JOLLYG7!",
+						name = "LootCollector CoA v" .. (L.Version or GetAddOnMetadata("LootCollector", "Version") or "unknown") .. "\n\nMaintainer: Uncle Bone\nContact: https://github.com/uncle-bone\nProject: https://github.com/uncle-bone/LootCollector\n\nOriginally created by Skulltrail.\n\nA huge thank you to all the contributors for their hard work and support. This addon wouldn't be possible without your help!\nSpecial thanks to: |cffFFD700Deidre, Rhenyra, Morty, Markosz, Bandit Tech, xan, Stilnight, Xurkon, Netherborne, Liakate, Jollyg7|r, and all the community helpers out there.\n\nI would also like to extend a special thank you to |cffFFD700@ERitzman|r for being our first-ever LootCollector sponsor!",
 						fontSize = "large",
 						order = 10,
 					},
@@ -1779,7 +1779,7 @@ local function buildOptions()
 						name = "• Download (GitHub)",
 						order = 21,
 						func = function()
-							local url = "https://github.com/downingwow/LootCollector"
+							local url = "https://github.com/uncle-bone/LootCollector"
 							OpenCopyPopup("LootCollector Download", url)
 							print("|cff00ff00LootCollector Download:|r " .. url)
 						end,
