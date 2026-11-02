@@ -44,7 +44,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq lua5.1
-          luac5.1 -p LootCollector/Modules/SmartSync.lua
+          find LootCollector LootCollector_CustomImport LootCollector_StarterDB -type f -name "*.lua" -print0 | xargs -0 -r -n1 luac5.1 -p
           python3 - <<'PY'
           import pathlib
           for folder in ('LootCollector','LootCollector_CustomImport','LootCollector_StarterDB'):
