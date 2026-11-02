@@ -1,3 +1,7 @@
+## 1.0.14 — Stuck outgoing shares hotfix
+
+- Reduced excessive legacy sharing interval; added channel-health and send guards.
+
 ## 1.0.13 — CoASync development preview
 
 - CoASync migration, self-echo filtering, channel-visibility safety, SmartSync diagnostics, settings controls.
