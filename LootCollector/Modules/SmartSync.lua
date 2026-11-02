@@ -161,10 +161,23 @@ function S:SendDiff(sec)
   end
   self.diffCursor[sec] = start+8 > limit and 1 or start+8
 end
+local function isSelfSender(sender)
+  if type(sender) ~= "string" then return false end
+  local player = UnitName and UnitName("player")
+  if type(player) ~= "string" or player == "" then return false end
+  local short = sender:match("^([^%-]+)")
+  if not short or short:lower() ~= player:lower() then return false end
+  local realm = sender:match("%-(.+)$")
+  if not realm then return true end
+  local own = GetRealmName and GetRealmName()
+  if type(own) ~= "string" or own == "" then return false end
+  local function norm(v) return v:lower():gsub("%s+", "") end
+  return norm(realm) == norm(own)
+end
 function S:Accept(sender, wire)
   if not enabled() or type(wire)~="string" or #wire>MAX_WIRE or #wire<8 then return end
   if wire:sub(1,#PREFIX+1)~=PREFIX..";" or wire:find("[%c]") then return end
-  if type(sender)~="string" or sender=="" or sender==UnitName("player") then return end
+  if type(sender)~="string" or sender=="" or isSelfSender(sender) then return end
   local p=self.peer[sender]
   local t=clock()
   if not p then p={start=t,count=0,last=0,requests=0};self.peer[sender]=p end
