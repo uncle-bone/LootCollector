@@ -1,8 +1,8 @@
-# LootCollector v1.0.16 — In-game About panel metadata
+# LootCollector v1.0.17 — Mapster and Discoveries performance hotfix
 
-- Show current addon version in the in-game About panel.
-- Display Uncle Bone as maintainer and github.com/uncle-bone as contact.
-- Correct About-panel download link to the official uncle-bone/LootCollector repository.
-- Preserve original author and contributor credits.
+- Anchor map filter button to the world map frame rather than transformed Mapster controls.
+- Move and constrain sync status so it does not overlap Discoveries filters.
+- Avoid expensive Worldforged upgrade scans on each Discoveries item hover.
+- Keep normal item tooltips and existing SavedVariables intact.
 
-Development prerelease; in-game testing required.
+Development prerelease; live Mapster and FPS testing required.
