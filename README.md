@@ -47,3 +47,7 @@ CoA adaptation maintained by **Uncle Bone** ([GitHub](https://github.com/uncle-b
 
 ### CoASync development preview (v1.0.13)
 Sharing now uses the shared CoASync channel, with a compact SmartSync status panel in settings. Local discoveries remain available when sharing is disabled. This is a prerelease requiring in-game compatibility testing.
+
+
+### v1.0.14 sharing queue hotfix
+Legacy outgoing shares now drain at bounded intervals when CoASync is healthy. The separate SmartSync v3 queue remains unchanged.
