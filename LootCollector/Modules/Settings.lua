@@ -1202,7 +1202,7 @@ local function buildOptions()
 						type = "toggle",
 						name = "SmartSync v3 (incremental)",
 						order = 10.2,
-						desc = "Exchange compact record fingerprints and request changed discoveries only. Enabled by default. All traffic uses the existing BBLC25C channel.",
+						desc = "Exchange compact record fingerprints and request changed discoveries only. Enabled by default. All traffic uses the existing CoASync channel.",
 						disabled = function() return not L.db.profile.sharing.enabled end,
 						get = function() return L.db.profile.sharing.smartSyncV3 ~= false end,
 						set = function(_, value)
