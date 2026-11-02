@@ -778,8 +778,8 @@ function Comm:GetPublicChannelCongestionStatus()
 end
 
 function Comm:CalculateSharingInterval(mpm)
-    local baseInterval = 120    -- 2 minutes
-    local maxInterval = 3600    -- 60 minutes
+    local baseInterval = 8      -- bounded legacy discovery pacing; no 20-minute backlog
+    local maxInterval = 60     -- slow down under channel congestion without freezing queue
     
     if mpm <= 100 then
         return baseInterval
@@ -1375,7 +1375,9 @@ local function _sendRawToNetwork(rawStr)
         return false
     end
     
-    SendChatMessage(rawStr, "CHANNEL", nil, Comm.channelId or 0)
+    if type(rawStr)~="string" or #rawStr>235 then return false end
+    local ok=pcall(SendChatMessage,rawStr, "CHANNEL", nil, Comm.channelId or 0)
+    if not ok then return false end
     Comm._lastSendAt = tnow
     return true
 end
@@ -1889,7 +1891,7 @@ function Comm:OnUpdate(elapsed)
         self._lastChannelBroadcastTime = self._lastChannelBroadcastTime or 0
         local interval = self:GetCurrentSharingInterval() or 1200
         
-        if (tnow - self._lastChannelBroadcastTime) >= interval then
+        if self:IsChannelHealthy() and not self._publicChannelAutoPaused and (tnow - self._lastChannelBroadcastTime) >= interval then
             local wire = HQ_Pop(self._outgoingSyncQueue)
             if wire then
                 _enqueueChannelWire(wire)
