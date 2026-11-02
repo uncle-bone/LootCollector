@@ -5595,7 +5595,9 @@ beta-0.8.6r:
 
     local syncStatusText = syncStatusHit:CreateFontString(nil, "OVERLAY", UI_FONT_NAME)
     syncStatusText:SetPoint("LEFT", syncStatusHit, "LEFT", 0, 0)
-    syncStatusText:SetJustifyH("LEFT")\n    syncStatusText:SetWidth(125)\n    syncStatusText:SetWordWrap(false)
+    syncStatusText:SetJustifyH("LEFT")
+    syncStatusText:SetWidth(125)
+    syncStatusText:SetWordWrap(false)
     syncStatusText:SetText("")
     self.syncStatusText = syncStatusText
     self.syncStatusHit = syncStatusHit
