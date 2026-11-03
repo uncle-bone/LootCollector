@@ -21,3 +21,7 @@ Slash commands:
 Automatic capture records targeted creatures classified by the game as rare/rare elite/world boss, and targeted chest/cache/coffer objects when a loot window opens. World-map pins display stored records for the currently viewed map and show available metadata in a tooltip. Known locations and drop tables can be added manually with `importline`; the addon does not ship a verified Conquest of Azeroth rare/chest atlas, and timers remain estimates unless confirmed by gameplay observations.
 
 Sharing uses bounded plain-text records and validates the type and coordinates before merging. Older LootCollector versions will ignore these new records unless updated with this module.
+
+## CoA-Research v2.0.1 — opt-in diagnostics (v1.0.20 preview)
+
+The Sharing settings include **Audit Saved Loot Against CoA Research**. The archive's 999 pending-SQL dungeon variant families are used only for on-demand ID comparisons, with clear provenance; no unverified drops are imported as confirmed loot or map pins. The audit runs in bounded batches and does not change SavedVariables. A separate **Rebuild CoASync Index** button refreshes the existing incremental index. Detailed evidence and current gaps are in the repository's `research/COA-RESEARCH-v2.0.1-LOOT-AUDIT.md`.
