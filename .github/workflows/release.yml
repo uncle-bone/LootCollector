@@ -48,7 +48,8 @@ jobs:
           lua5.1 tests/smartsync_channel_test.lua
           lua5.1 tests/smartsync_identity_test.lua
           python3 - <<'PY'
-          import pathlib
+          import pathlib,json
+          cfg=json.loads(pathlib.Path('.release.json').read_text())
           toc=pathlib.Path('LootCollector/LootCollector.toc').read_text(encoding='utf-8-sig')
           core=pathlib.Path('LootCollector/LootCollector.lua').read_text(encoding='utf-8-sig')
           minimap=pathlib.Path('LootCollector/Modules/MinimapButton.lua').read_text(encoding='utf-8-sig')
