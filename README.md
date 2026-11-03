@@ -1,12 +1,12 @@
 # LootCollector CoA
 
-> **[⬇ Download v1.0.16 — Current stable release](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.16/LootCollector-v1.0.16.zip)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.16)
+> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.16)
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
 Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
 
-## Current stable release: v1.0.16
+## **Current stable release: v1.0.19.**
 
 The About panel now displays the installed version, Uncle Bone as maintainer, the official GitHub contact, and the repository link. This release includes the current CoASync sharing build: it waits 20 seconds after login before safely joining and hides the channel from chat while preserving existing channel memberships.
 
