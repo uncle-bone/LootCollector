@@ -1,11 +1,10 @@
 {
-  "version": "v1.0.20",
+  "version": "v1.0.19",
   "prerelease": true,
   "folders": [
     "LootCollector",
     "LootCollector_CustomImport",
     "LootCollector_StarterDB"
   ],
-  "extras": [],
-  "validationRevision": 2
+  "extras": []
 }

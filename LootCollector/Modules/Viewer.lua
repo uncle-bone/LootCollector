@@ -4781,16 +4781,6 @@ function Viewer:CreateWindow()
         GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 0, -2)
         GameTooltip:SetText("LootCollector Changelog", 1, 0.82, 0)
         local text = [=[
-Version 1.0.20 (CoA-Research integration preview):
-- Read-only audit of 999 historical upstream dungeon loot variant families (no live drop claims).
-- Audit button in Sharing settings checks saved discovery IDs in bounded batches.
-- CoASync diagnostics show both SmartSync and legacy outgoing queues.
-- Addon version in the viewer, About panel and peer metadata now follows the TOC.
-- No automatic map pins, loot drops, or SavedVariables imports.
-
-Version 1.0.19:
-- Map filter placement across Blizzard stock map, Mapster, DragonUI WorldMap and ElvUI.
-
 Version 1.0.6:
 - Leftover map stamps — Worldforged pins copied onto wrong maps (same item, same map fractions) merge onto the real pin on login. Looted marks move with the pin that stays.
 - Verified coordinates — A number of spawns were checked by hand (including Prancefin Ring in Un’Goro). Extra-zone copies collapse onto those pins; looted marks move with them.

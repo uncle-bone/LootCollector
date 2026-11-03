@@ -1,28 +1,16 @@
 # LootCollector CoA
 
-> **[Download v1.0.20 — CoA-Research integration preview](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.20/LootCollector-v1.0.20.zip)** · [Stable v1.0.19](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.19/LootCollector-v1.0.19.zip)
+> **[⬇ Download v1.0.16 — Current stable release](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.16/LootCollector-v1.0.16.zip)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.16)
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
 Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
 
-## Development preview: v1.0.20 — CoA-Research v2.0.1
+## Current stable release: v1.0.16
 
-- Added an on-demand, **read-only CoA-Research loot audit** under **Settings → Behavior & Sharing**. It compares your saved item IDs against **999 upstream pending-SQL item-variant families** in 75-record batches. These are *historical source candidates*, **not verified current drops**; no pins, spawns or SavedVariables are automatically imported or overwritten.
-- Added **Rebuild CoASync Index** to refresh the existing incremental local discovery index without clearing discoveries.
-- Improved **Print Sync Diagnostics** and status display to include both SmartSync and legacy outgoing queues.
-- Corrected the actual in-game addon version: the Discoveries header, About panel, build stamp and peer metadata now derive from the installed TOC instead of the obsolete hardcoded v1.0.6.
-- Added Lua 5.1 mock audit tests and candidate provenance/integrity checks.
+The About panel now displays the installed version, Uncle Bone as maintainer, the official GitHub contact, and the repository link. This release includes the current CoASync sharing build: it waits 20 seconds after login before safely joining and hides the channel from chat while preserving existing channel memberships.
 
-The shared item-and-loot export contains **zero live-verified loot relationships**; the NPC/quest source inventory has no normalized spawn coordinates. See [integration evidence and limitations](research/COA-RESEARCH-v2.0.1-LOOT-AUDIT.md). The v1.0.20 prerelease requires live-client validation.
-
-## Current stable release: v1.0.19
-
-**LootCollector CoA v1.0.19** brings discovery tracking and shared CoASync data to Conquest Reborn, with improved world-map filter button placement for **Blizzard's default map, Mapster, DragonUI WorldMap, and ElvUI**. The button repositions around map title controls and responds to resized maps, with throttled layout checks to reduce overhead.
-
-The Discoveries browser includes a layout correction for overlapping sync status controls and a performance safeguard to avoid expensive Worldforged upgrade scans when hovering over item rows. CoASync uses a guarded 20-second startup delay and hides its chat channel without leaving or replacing other channels. The in-game About panel displays the installed version, maintainer **Uncle Bone**, and the official GitHub contact.
-
-**Validation:** GitHub Actions passed Lua 5.1 syntax and addon TOC checks. Full in-game compatibility and FPS testing across every UI combination remains pending; this is not a claim that every map modification is conflict-free.
+Existing discoveries, map features, and SavedVariables are preserved. At last in-game status check, the client was on CoASync channel /6 with no compatible peers detected, so cross-player synchronization still needs confirmation with another LootCollector user online.
 
 ## Features
 
@@ -35,16 +23,6 @@ The Discoveries browser includes a layout correction for overlapping sync status
 Discovery pins are community reports, not guaranteed current spawns. Respawn estimates and observed loot lists are not authoritative.
 
 ## Recent changes
-
-### v1.0.19 — Stable world-map compatibility update
-
-- Reposition LootCollector's map filter button to stay inside the map and avoid existing title controls on Blizzard stock, Mapster, DragonUI WorldMap and ElvUI.
-- Throttle repositioning checks instead of running every frame.
-
-### v1.0.18 — Discoveries UI and hover performance
-
-- Constrain sync status layout to reduce header overlap.
-- Avoid expensive Worldforged tooltip augmentation scans for Discoveries browser item hover.
 
 ### v1.0.16 — About panel metadata
 
@@ -65,7 +43,7 @@ Discovery pins are community reports, not guaranteed current spawns. Respawn est
 ## Installation
 
 1. Back up `LootCollectorDB_Asc` from SavedVariables before updating.
-2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/latest).
+2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.16/LootCollector-v1.0.16.zip).
 3. Extract these **three sibling folders** into `Interface/AddOns/`: `LootCollector`, `LootCollector_CustomImport`, and `LootCollector_StarterDB`.
 4. Restart Conquest Reborn and enable the addons.
 
