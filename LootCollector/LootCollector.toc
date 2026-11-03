@@ -48,6 +48,7 @@ Modules\RareChest.lua
 Modules\Moderation.lua
 Modules\DBSync.lua
 Modules\SmartSync.lua
+Modules\ResearchAudit.lua
 
 # Map/UI and behavior modules
 Modules\ProximityList.lua
