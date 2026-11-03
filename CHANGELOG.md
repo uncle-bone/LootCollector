@@ -1,3 +1,11 @@
+## 1.0.20 — CoA-Research v2.0.1 audit (prerelease)
+
+- Added an optional, incremental, provenance-labeled item candidate audit using 999 pending-SQL loot-variant families.
+- No guessed drops or map pins imported; no saved-data schema changes.
+- Added GUI action to rebuild SmartSync's local index; diagnostic counters now expose legacy and rate-limit queues.
+- Fixed stale hardcoded 1.0.6 in-game version/build stamp by reading TOC version.
+- Extended Lua 5.1 validation with a mocked incremental audit regression test.
+
 ## 1.0.19 — Map compatibility
 
 - Dynamic map button placement for Blizzard stock map, Mapster, DragonUI WorldMap and ElvUI, with throttled layout updates.
