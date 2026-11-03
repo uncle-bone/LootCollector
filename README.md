@@ -1,15 +1,15 @@
 # LootCollector CoA
 
-> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.25)
-> **Current stable release: v1.0.25.**
+> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.26)
+> **Current stable release: v1.0.26.**
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
 Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
 
-## **Current stable release: v1.0.25.**
+## **Current stable release: v1.0.26.**
 
-This release reduces Discoveries hover lag by spreading Worldforged upgrade scanning across frames while keeping the existing enhanced tooltip.
+This release prevents rapid Discoveries hover from accumulating stale Worldforged upgrade scans; tooltip work starts after a short hover delay and cancels when moving away.
 
 SmartSync retains the existing LCS3 protocol, collision-safe record indexing, pacing, duplicate protection, and SavedVariables. No database or protocol changes are included.
 
@@ -24,6 +24,13 @@ SmartSync retains the existing LCS3 protocol, collision-safe record indexing, pa
 Discovery pins are community reports, not guaranteed current spawns. Respawn estimates and observed loot lists are not authoritative.
 
 ## Recent changes
+
+### v1.0.26 — Rapid-hover performance hotfix
+
+- Wait 250 ms before starting Worldforged upgrade scans in Discoveries and cancel abandoned scans when moving between rows.
+- Reuse completed upgrade cache; retain the existing upgrade tooltip, SmartSync v3 and SavedVariables.
+- Live in-game FPS verification pending.
+
 
 ### v1.0.25 — Worldforged tooltip hover performance
 
