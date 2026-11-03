@@ -1,3 +1,10 @@
+## 1.0.21 — SmartSync CoASync receive validation
+
+- Correct `CHAT_MSG_CHANNEL` parsing for WoW 3.3.5a by validating both the local CoASync channel number and the incoming plain or decorated channel name.
+- Add an automated Lua 5.1 regression test for valid receipt, peer accounting, and wrong-channel rejection.
+- Keep the LCS3 protocol, rate limits, duplicate suppression, and saved discovery data unchanged.
+- Requires in-game multi-client confirmation; previous stable version remains available.
+
 ## 1.0.19 — Map compatibility
 
 - Dynamic map button placement for Blizzard stock map, Mapster, DragonUI WorldMap and ElvUI, with throttled layout updates.

@@ -279,20 +279,19 @@ function S:Process(sender,wire)
   end
 end
 function S:OnChannel(_,message,sender,_,channelDisplay,_,_,_,channelIndex,channelBaseName)
-  -- CHAT_MSG_CHANNEL on 3.3.5a supplies the decorated channel label
-  -- (e.g. "6. CoASync") before the plain channel name. The old handler
-  -- compared the decorated label with "CoASync" and discarded valid packets.
-  local name = channelBaseName
-  if type(name)~="string" or name=="" then name=channelDisplay end
-  if type(name)~="string" then return end
-  name=name:gsub("^%d+%.%s*","")
-  if name:lower()~=CHANNEL:lower() then return end
-  -- A channel number is local to each client. Validate against our current
-  -- CoASync slot when the event supplies a numeric channel index.
+  -- CHAT_MSG_CHANNEL args on 3.3.5a provide a decorated display label
+  -- (for example "6. CoASync") and a plain base name. Check both the local
+  -- channel slot and its name before accepting a packet.
   local expected=channelID()
-  if expected<=0 then return end
   local received=tonumber(channelIndex)
-  if received and received>0 and received~=expected then return end
+  if not expected or expected<=0 or not received or received~=expected then return end
+  local function matches(name)
+    if type(name)~="string" then return false end
+    name=name:gsub("^%s+",""):gsub("%s+$","")
+    name=name:gsub("^%d+%.%s*","")
+    return name:lower()==CHANNEL:lower()
+  end
+  if not matches(channelBaseName) and not matches(channelDisplay) then return end
   self:Accept(sender,message)
 end
 function S:OnLeave()

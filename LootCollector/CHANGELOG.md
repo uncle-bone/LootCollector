@@ -1,3 +1,11 @@
+## 1.0.21 — SmartSync CoASync receive validation
+
+- Accept WoW 3.3.5a channel messages only when the local channel number and CoASync name both match.
+- Support the decorated display label (for example `6. CoASync`) and the plain base name.
+- Add a Lua 5.1 regression test confirming valid packets increase received and peer counts while wrong-channel packets are rejected.
+- Preserve SmartSync v3 framing, discovery sharing, throttling, duplicate protection, and existing data.
+- In-game multi-client verification is still required.
+
 ## 1.0.14 — Stuck outgoing shares hotfix
 
 - Reduced excessive legacy sharing interval; added channel-health and send guards.
