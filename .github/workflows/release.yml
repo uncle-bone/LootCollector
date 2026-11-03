@@ -52,8 +52,9 @@ jobs:
           toc=pathlib.Path('LootCollector/LootCollector.toc').read_text(encoding='utf-8-sig')
           core=pathlib.Path('LootCollector/LootCollector.lua').read_text(encoding='utf-8-sig')
           minimap=pathlib.Path('LootCollector/Modules/MinimapButton.lua').read_text(encoding='utf-8-sig')
-          assert '## Version: 1.0.22' in toc and '## X-CoA-Version: 1.0.22' in toc
-          assert 'self.Version      = "1.0.22"' in core and 'self.BuildStamp   = "1.0.22"' in core
+          version=cfg['version'].lstrip('v')
+          assert f'## Version: {version}' in toc and f'## X-CoA-Version: {version}' in toc
+          assert f'self.Version      = "{version}"' in core and f'self.BuildStamp   = "{version}"' in core
           assert 'L.BuildStamp or "?"' in minimap
           for folder in ('LootCollector','LootCollector_CustomImport','LootCollector_StarterDB'):
               for toc in pathlib.Path(folder).glob('*.toc'):
