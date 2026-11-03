@@ -1,8 +1,7 @@
-# LootCollector v1.0.26 — rapid-hover performance hotfix
+# LootCollector v1.0.27 — Worldforged tooltip cache refresh
 
-- Debounce Worldforged upgrade scans by 250 ms in Discoveries.
-- Cancel stale scans when the pointer moves to a different row; avoid building backlogs of abandoned tooltip work.
-- Reuse cached upgrades without synchronous rescanning in the Viewer.
-- Preserve SmartSync v3, phase selection and SavedVariables.
+- Retry unresolved Worldforged upgrade tiers in the Discoveries tooltip when client item information becomes available.
+- Preserve rapid-hover debounce and cancellation, upgrade display, SmartSync v3, and SavedVariables.
+- Live in-game tooltip completeness and FPS verification pending.
 
-Stable release. Automated Lua 5.1 and ZIP checks run before publication. In-game FPS testing remains pending.
+Stable release. GitHub Actions performs Lua 5.1 syntax, regression, TOC, and ZIP-integrity checks before publication.
