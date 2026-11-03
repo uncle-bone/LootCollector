@@ -47,6 +47,7 @@ jobs:
           find LootCollector LootCollector_CustomImport LootCollector_StarterDB -type f -name "*.lua" -print0 | xargs -0 -r -n1 luac5.1 -p
           lua5.1 tests/smartsync_channel_test.lua
           lua5.1 tests/smartsync_identity_test.lua
+          lua5.1 tests/smartsync_solo_test.lua
           python3 - <<'PY'
           import pathlib,json
           cfg=json.loads(pathlib.Path('.release.json').read_text())
