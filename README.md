@@ -1,17 +1,15 @@
 # LootCollector CoA
 
-> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.19)
-> **Current stable release: v1.0.19.**
+> **[Download Here!](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.21/LootCollector-v1.0.21.zip)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.21)
+> **Current stable release: v1.0.21.**
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
 Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
 
-## **Current stable release: v1.0.19.**
+## **Current stable release: v1.0.21.**
 
-The About panel now displays the installed version, Uncle Bone as maintainer, the official GitHub contact, and the repository link. This release includes the current CoASync sharing build: it waits 20 seconds after login before safely joining and hides the channel from chat while preserving existing channel memberships.
-
-Existing discoveries, map features, and SavedVariables are preserved. At last in-game status check, the client was on CoASync channel /6 with no compatible peers detected, so cross-player synchronization still needs confirmation with another LootCollector user online.
+This release fixes SmartSync v3 CoASync receive validation for WoW 3.3.5a. Incoming messages are accepted only when the local channel number and plain or decorated channel name both identify CoASync. Automated Lua 5.1 regression, TOC-reference, and ZIP-integrity checks passed. Existing discoveries, map features, protocols, throttling, duplicate protection, and SavedVariables are preserved. In-game multi-client peer verification remains pending.
 
 ## Features
 
@@ -24,6 +22,13 @@ Existing discoveries, map features, and SavedVariables are preserved. At last in
 Discovery pins are community reports, not guaranteed current spawns. Respawn estimates and observed loot lists are not authoritative.
 
 ## Recent changes
+
+### v1.0.21 — SmartSync CoASync receive validation
+
+- Correctly validate the local CoASync number and plain/decorated channel name in incoming channel messages.
+- Add regression coverage for valid peer receipt and rejection of wrong channel names or numbers.
+- Preserve SmartSync v3 protocol and existing database-sharing behavior.
+
 
 ### v1.0.16 — About panel metadata
 
@@ -44,7 +49,7 @@ Discovery pins are community reports, not guaranteed current spawns. Respawn est
 ## Installation
 
 1. Back up `LootCollectorDB_Asc` from SavedVariables before updating.
-2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.16/LootCollector-v1.0.16.zip).
+2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.21/LootCollector-v1.0.21.zip).
 3. Extract these **three sibling folders** into `Interface/AddOns/`: `LootCollector`, `LootCollector_CustomImport`, and `LootCollector_StarterDB`.
 4. Restart Conquest Reborn and enable the addons.
 
