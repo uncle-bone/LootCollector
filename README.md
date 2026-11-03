@@ -1,6 +1,6 @@
 # LootCollector CoA
 
-> **[Download Here!](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.23/LootCollector-v1.0.23.zip)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.23)
+> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.23)
 > **Current stable release: v1.0.23.**
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
@@ -64,7 +64,7 @@ Discovery pins are community reports, not guaranteed current spawns. Respawn est
 ## Installation
 
 1. Back up `LootCollectorDB_Asc` from SavedVariables before updating.
-2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.23/LootCollector-v1.0.23.zip).
+2. Download the [current stable ZIP](https://coa-research.unclebone.workers.dev/download/LootCollector).
 3. Extract these **three sibling folders** into `Interface/AddOns/`: `LootCollector`, `LootCollector_CustomImport`, and `LootCollector_StarterDB`.
 4. Restart Conquest Reborn and enable the addons.
 
