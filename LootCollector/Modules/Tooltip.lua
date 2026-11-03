@@ -611,8 +611,39 @@ local function BuildViewerUpgradeChainAsync(itemID, tooltip, owner)
         inHandler = false
     end
     local cached = upgradeCache[baseID]
+    -- A first hover may have only primed the client item cache. Never treat
+    -- placeholder tiers as permanently complete: chat links appear to fix
+    -- them only because opening a link warms the same item information.
     if cached then
-        showChain(cached)
+        local hasMissing = false
+        for _, entry in ipairs(cached) do
+            if entry.placeholder then hasMissing = true; break end
+        end
+        if not hasMissing then
+            showChain(cached)
+            return
+        end
+        local index = 1
+        local function refreshMissing()
+            if not stillHovered() then return end
+            local entry = cached[index]
+            if not entry then
+                showChain(cached)
+                return
+            end
+            if entry.placeholder then
+                local name, link, quality = GetItemInfo(entry.itemID)
+                if name and link then
+                    entry.itemName, entry.itemLink = name, link
+                    entry.quality = quality or 2
+                    entry.stats, entry.effects = GetItemInfoAndEffects(link)
+                    entry.placeholder = false
+                end
+            end
+            index = index + 1
+            C_Timer.After(0.03, refreshMissing)
+        end
+        C_Timer.After(0.25, refreshMissing)
         return
     end
     local job = { chain = {}, index = 1 }
