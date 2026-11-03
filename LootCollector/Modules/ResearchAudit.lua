@@ -1073,8 +1073,8 @@ function Audit:RunAudit()
             local data=state.phase==1 and discoveries or rares
             local ok,k,v=pcall(next,data,state.last)
             if not ok then
-                self:SetScript("OnUpdate",nil)
-                self:Hide()
+                frame:SetScript("OnUpdate",nil)
+                frame:Hide()
                 Audit.running=false
                 Audit.lastReport="Audit stopped: source data changed during scan. Retry."
                 print("|cffff5555LootCollector Research:|r "..Audit.lastReport)
