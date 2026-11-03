@@ -1,19 +1,19 @@
 # LootCollector CoA
 
-> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.27)
-> **Current stable release: v1.0.27.**
+> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.28)
+> **Current stable release: v1.0.28.**
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
 Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
 
-## **Current stable release: v1.0.27.**
+## **Current stable release: v1.0.28.**
 
 This release retries Worldforged upgrade tiers whose item information was missing during initial Discoveries hover, while retaining rapid-hover lag protection.
 
 SmartSync retains the existing LCS3 protocol, collision-safe record indexing, pacing, duplicate protection, and SavedVariables. No database or protocol changes are included.
 
-## Development diagnostic (unreleased; pending Lua 5.1 CI verification)
+## SmartSync v3 local diagnostic (opt-in)
 
 `/lcs3solo` runs an opt-in **local-only** SmartSync LCS3 receive-path simulation using isolated transient peer, queue, counter, and database state. It exercises HELLO, SUMMARY, DIFF, validated DATA, duplicate and malformed packets, and incremental index rebuild. The simulator blocks CoASync transport and persistent imports and restores live state after success or error. This checks **local protocol logic only**, not real channel delivery or two-client synchronization. Normal peer-to-peer CoASync remains enabled outside simulation.
 
@@ -29,7 +29,7 @@ Discovery pins are community reports, not guaranteed current spawns. Respawn est
 
 ## Recent changes
 
-### v1.0.27 — Worldforged tooltip cache refresh
+### v1.0.28 — Worldforged tooltip cache refresh
 
 - Retry missing upgrade-tier data after the client item cache warms, instead of permanently reusing incomplete tooltip results.
 - Preserve rapid-hover cancellation, SmartSync v3 and SavedVariables. Live testing pending.
