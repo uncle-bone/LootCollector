@@ -1052,7 +1052,12 @@ function Audit:RunAudit()
     local rares=rc and rc.GetRecords and rc:GetRecords() or {}
     if type(discoveries)~="table" then discoveries={} end
     if type(rares)~="table" then rares={} end
-    local frame=CreateFrame("Frame",nil,UIParent)
+    local frame=self.auditFrame
+    if not frame then
+        frame=CreateFrame("Frame",nil,UIParent)
+        self.auditFrame=frame
+    end
+    frame:Show()
     local state={phase=1,last=nil,scanned=0,matched=0,base=0,heroic=0,mythic=0,rareCount=0,dropText=0}
     self.running=true
     self.lastReport="Scanning saved discoveries in small batches..."
