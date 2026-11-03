@@ -2139,11 +2139,11 @@ function LootCollector:OnInitialize()
 
     self.channelReady = false
     self.name         = "LootCollector"
-    self.Version      = "1.0.25"
+    self.Version      = "1.0.26"
     -- Build stamp: NOT part of the comm-version string (which other
     -- clients' version filters compare); purely for humans to verify which
     -- fix pass is actually installed (minimap tooltip + /lcvendor).
-    self.BuildStamp   = "1.0.25"
+    self.BuildStamp   = "1.0.26"
 
     local Constants = self:GetModule("Constants", true)
     if Constants and Constants.GetDefaultChannel then
