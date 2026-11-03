@@ -84,6 +84,10 @@ local function say(msg)
   print("|cff66ccffLootCollector:|r " .. msg)
 end
 function S:Queue(parts, target)
+  if self.simulationActive then
+    self.simulationQueued=(self.simulationQueued or 0)+1
+    return true -- record logical protocol intent; never enqueue or transmit
+  end
   if not enabled() then return false end
   local wire = PREFIX..";"..table.concat(parts,";")
   if #wire > MAX_WIRE or wire:find("[%c]") then return false end
@@ -214,6 +218,12 @@ function S:Apply(sec, content, sender)
     if (sec=="R" and kind~="rare") or (sec=="C" and kind~="chest" and kind~="highrisk" and kind~="warmode" and kind~="object") then return end
     local map,x,y=tonumber(a[2]),tonumber(a[3]),tonumber(a[4])
     if not map or map<=0 or not x or not y or x<0 or x>10000 or y<0 or y>10000 then return end
+    if self.simulationActive then
+      local db=self.simulationDB
+      db[#db+1]={section=sec,content=content,sender=sender}
+      self.stats.updated=self.stats.updated+1
+      return true
+    end
     local rc=L:GetModule("RareChest",true)
     if rc and rc.Upsert then
       local ok=rc:Upsert({kind=kind,map=map,x=x/10000,y=y/10000,level=tonumber(a[5]),respawn=tonumber(a[6]),name=a[7],drops=a[8],notes=a[9],updated=time()},false)
@@ -225,6 +235,12 @@ function S:Apply(sec, content, sender)
     local c,z,item,x,y,iz,dt,q,it,ist=unpack(a)
     c=tonumber(c);z=tonumber(z);item=tonumber(item);x=tonumber(x);y=tonumber(y)
     if z<=0 or item==0 or x<0 or x>10000 or y<0 or y>10000 then return end
+    if self.simulationActive then
+      local db=self.simulationDB
+      db[#db+1]={section=sec,content=content,sender=sender}
+      self.stats.updated=self.stats.updated+1
+      return true
+    end
     local D=L:GetModule("DBSync",true)
     if D and D.ApplyRecord then
       D:ApplyRecord(c,z,item,x,y,0,0,sender,tonumber(q),tonumber(dt),tonumber(it),tonumber(ist),nil,a[11],sender,tonumber(iz))
@@ -320,6 +336,7 @@ function S:Process(sender,wire)
   end
 end
 function S:OnChannel(_,message,sender,_,channelDisplay,_,_,_,channelIndex,channelBaseName)
+  if self.simulationActive then return end
   -- CHAT_MSG_CHANNEL args on 3.3.5a provide a decorated display label
   -- (for example "6. CoASync") and a plain base name. Check both the local
   -- channel slot and its name before accepting a packet.
@@ -359,6 +376,7 @@ function S:OnEnter()
   if enabled() then say("SmartSync queued; indexing starts after 45s.") else say("SmartSync disabled; indexing skipped.") end
 end
 function S:OnUpdate(elapsed)
+  if self.simulationActive then return end -- never drain a real or synthetic packet to transport
   self.tick=(self.tick or 0)+elapsed
   if self.tick<0.1 then return end
   self.tick=0
@@ -418,12 +436,79 @@ function S:OnUpdate(elapsed)
   self.lastSent=t
   if ok then self.sentSession=self.sentSession+1;self.stats.sent=self.stats.sent+1 else self.stats.dropped=self.stats.dropped+1 end
 end
+-- Opt-in, local-only LCS3 receive-path diagnostic. No SavedVariables or live queues
+-- are touched: the simulator swaps only module-local transient state.
+function S:SimulateSolo()
+  if self.simulationActive then return false,"already running" end
+  local fields={"outgoing","urgent","incoming","pending","peer","index","order","sum",
+    "advertised","requested","stats","scanData","scanSection","scanKey","scanning",
+    "scanCount","nextRebuild","diffCursor","simulationDB","simulationQueued"}
+  local saved={}
+  for _,key in ipairs(fields) do saved[key]={value=self[key]} end
+  local function run()
+    self.outgoing={first=1,last=0};self.urgent={first=1,last=0}
+    self.incoming={first=1,last=0};self.pending={};self.peer={}
+    self.index={W={},V={},R={},C={}}
+    self.order={W={},V={},R={},C={}}
+    self.sum={W={count=0,fp="00000000"},V={count=0,fp="00000000"},
+      R={count=0,fp="00000000"},C={count=0,fp="00000000"}}
+    self.advertised={};self.requested={}
+    self.stats={updated=0,sent=0,received=0,dropped=0,invalid=0,duplicates=0,throttled=0,ack=0}
+    self.scanning=false;self.scanCount=0;self.simulationDB={};self.simulationQueued=0
+    local sender="LC-Solo-Diagnostic-Peer"
+    local function receive(wire)
+      self:Accept(sender,wire)
+      local packet=pop(self.incoming)
+      if packet then self:Process(packet.sender,packet.wire) end
+    end
+    receive("LCS3;HELLO;3")
+    assert(self.peer[sender] and self.peer[sender].lastActivity,"HELLO peer missing")
+    assert(self.simulationQueued>=4,"HELLO summaries not queued")
+    receive("LCS3;SUMMARY;W;1;ffffffff")
+    local data={c=1,z=12,i=34567,xy={x=0.4,y=0.5},iz=0,dt=1,q=2,it=0,ist=0,itemName="LC SOLO TEST"}
+    local id,fp,content=encode("W",data)
+    assert(id and fp and content,"test record encode failed")
+    receive("LCS3;DIFF;W;"..id..";"..fp)
+    assert(self.requested["W:"..id..":"..fp],"DIFF did not request missing record")
+    local wire="LCS3;DATA;W;"..id..";"..fp..";"..content
+    receive(wire)
+    assert(#self.simulationDB==1 and self.stats.updated==1,"valid DATA not imported")
+    assert(self.index.W[id] and self.index.W[id][fp],"index not reconciled")
+    assert(self.sum.W.count==1,"summary count not reconciled")
+    -- The same wire must not import a second time.
+    receive(wire)
+    assert(#self.simulationDB==1 and self.stats.duplicates>=1,"duplicate was not rejected")
+    receive("LCS3;DATA;W;"..id..";"..fp..";invalid~content")
+    assert(#self.simulationDB==1,"malformed DATA imported")
+    assert(self.stats.sent==0 and queueLength(self.outgoing)==0
+      and queueLength(self.urgent)==0,"simulator produced outbound packets")
+    -- Reconciliation remains internally consistent with the received index.
+    local count=0
+    for _,variants in pairs(self.index.W) do
+      for _ in pairs(variants) do count=count+1 end
+    end
+    assert(count==self.sum.W.count,"reconciled count mismatch")
+    return "HELLO, summary, DIFF request, DATA import, duplicate, malformed, index reconciliation, no transport"
+  end
+  self.simulationActive=true
+  local ok,result=pcall(run)
+  for _,key in ipairs(fields) do self[key]=saved[key].value end
+  self.simulationActive=false
+  if ok then return true,result end
+  return false,tostring(result)
+end
 function S:GetStatus()
   local peers=0
   for _,p in pairs(self.peer) do if clock()-(p.lastActivity or 0)<300 then peers=peers+1 end end
   return {channel=channelID(),identity="LootCollector-Discovery-v1",schema=1,protocol=3,building=self.scanning,ready=not self.scanning and not self.scanAt,records=self.scanCount or 0,peers=peers,outgoing=queueLength(self.outgoing)+queueLength(self.urgent),incoming=queueLength(self.incoming),stats=self.stats}
 end
 function S:OnInitialize()
+  SLASH_LCSOLO1="/lcs3solo"
+  SlashCmdList["LCSOLO"]=function()
+    local ok,detail=S:SimulateSolo()
+    print("|cff66ccffLootCollector LCS3 SOLO "..(ok and "PASS" or "FAIL").."|r: "..detail)
+    print("Local protocol logic only; NO CoASync packets sent. Does NOT prove real two-client channel delivery.")
+  end
   self:RegisterEvent("CHAT_MSG_CHANNEL","OnChannel")
   self:RegisterEvent("PLAYER_LEAVING_WORLD","OnLeave")
   self:RegisterEvent("PLAYER_ENTERING_WORLD","OnEnter")
