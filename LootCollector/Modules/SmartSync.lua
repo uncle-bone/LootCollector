@@ -120,13 +120,13 @@ function S:ScanStep()
       self.scanKey=key;budget=budget-1
       local id,fp,content=encode(section,d)
       if id then
-        local old=self.index[section][id]
+        local variants=self.index[section][id]
+        if not variants then variants={};self.index[section][id]=variants end
+        local old=variants[fp]
         if not old then
-          self.order[section][#self.order[section]+1]=id
-          self.index[section][id]={fp=fp,content=content}
+          self.order[section][#self.order[section]+1]={id=id,fp=fp}
+          variants[fp]={content=content}
           self.scanCount=self.scanCount+1
-        elseif fp < old.fp then
-          self.index[section][id]={fp=fp,content=content}
         end
       end
     end
@@ -135,8 +135,8 @@ function S:ScanStep()
     for _,section in ipairs(SECTIONS) do
       local ids=self.order[section]
       local h=0
-      for _,id in ipairs(ids) do
-        h=(h+tonumber(hash(id..self.index[section][id].fp),16))%2147483647
+      for _,entry in ipairs(ids) do
+        h=(h+tonumber(hash(entry.id..entry.fp),16))%2147483647
       end
       self.sum[section]={count=#ids,fp=string.format("%08x",h)}
     end
@@ -161,11 +161,12 @@ function S:SendDiff(sec)
   self.diffCursor=self.diffCursor or {}
   local now=clock()
   for i=start,math.min(start+7,limit) do
-    local id=ids[i]
-    local r=self.index[sec][id]
-    local key=sec..":"..id..":"..(r and r.fp or "")
+    local entry=ids[i]
+    local id,fp=entry.id,entry.fp
+    local r=self.index[sec][id] and self.index[sec][id][fp]
+    local key=sec..":"..id..":"..fp
     if r and (not self.advertised[key] or now-self.advertised[key]>=ADVERTISE_COOLDOWN) then
-      if self:Queue({"DIFF",sec,id,r.fp}) then self.advertised[key]=now end
+      if self:Queue({"DIFF",sec,id,fp}) then self.advertised[key]=now end
     end
   end
   self.diffCursor[sec] = start+8 > limit and 1 or start+8
@@ -216,7 +217,7 @@ function S:Apply(sec, content, sender)
     local rc=L:GetModule("RareChest",true)
     if rc and rc.Upsert then
       local ok=rc:Upsert({kind=kind,map=map,x=x/10000,y=y/10000,level=tonumber(a[5]),respawn=tonumber(a[6]),name=a[7],drops=a[8],notes=a[9],updated=time()},false)
-      if ok then self.stats.updated=self.stats.updated+1 end
+      if ok then self.stats.updated=self.stats.updated+1;return true end
     end
   else
     if #a~=11 then return end
@@ -228,8 +229,10 @@ function S:Apply(sec, content, sender)
     if D and D.ApplyRecord then
       D:ApplyRecord(c,z,item,x,y,0,0,sender,tonumber(q),tonumber(dt),tonumber(it),tonumber(ist),nil,a[11],sender,tonumber(iz))
       self.stats.updated=self.stats.updated+1
+      return true
     end
   end
+  return false
 end
 function S:Process(sender,wire)
   local kind,rest=wire:match("^LCS3;([^;]+);?(.*)$")
@@ -252,9 +255,10 @@ function S:Process(sender,wire)
   elseif kind=="DIFF" then
     local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
     if not sec or #id~=8 or #fp~=8 or self.scanning then return end
-    local localRec=self.index[sec] and self.index[sec][id]
+    local variants=self.index[sec] and self.index[sec][id]
+    local localRec=variants and variants[fp]
     local key=sec..":"..id..":"..fp
-    if (not localRec or localRec.fp<fp) and (p.requests or 0)<16 and
+    if not localRec and (p.requests or 0)<16 and
        (not self.requested[key] or now-self.requested[key]>=REQUEST_COOLDOWN) then
       if self:Queue({"REQUEST",sec,id,fp}) then
         p.requests=p.requests+1
@@ -264,8 +268,8 @@ function S:Process(sender,wire)
   elseif kind=="REQUEST" then
     local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
     if not sec or #id~=8 or #fp~=8 then return end
-    local record=self.index[sec] and self.index[sec][id]
-    if record and record.fp==fp and (p.responses or 0)<12 then
+    local record=self.index[sec] and self.index[sec][id] and self.index[sec][id][fp]
+    if record and (p.responses or 0)<12 then
       p.responses=(p.responses or 0)+1
       self:Queue({"DATA",sec,id,fp,record.content})
     end
@@ -283,7 +287,27 @@ function S:Process(sender,wire)
     end
     local checkId,checkFp=reconstructed and encode(sec,reconstructed)
     if checkId~=id or checkFp~=fp then return end
-    self:Apply(sec,content,sender)
+    if self:Apply(sec,content,sender) then
+      local variants=self.index[sec] and self.index[sec][id]
+      if not variants then
+        variants={};self.index[sec][id]=variants
+        self.order[sec][#self.order[sec]+1]={id=id,fp=fp}
+        self.scanCount=(self.scanCount or 0)+1
+        local value=tonumber(hash(id..fp),16)
+        local current=self.sum[sec] or {count=0,fp="00000000"}
+        current.count=current.count+1
+        current.fp=string.format("%08x",(tonumber(current.fp,16)+value)%2147483647)
+        self.sum[sec]=current
+      elseif not variants[fp] then
+        self.order[sec][#self.order[sec]+1]={id=id,fp=fp}
+        self.scanCount=(self.scanCount or 0)+1
+        local current=self.sum[sec] or {count=0,fp="00000000"}
+        current.count=current.count+1
+        current.fp=string.format("%08x",(tonumber(current.fp,16)+tonumber(hash(id..fp),16))%2147483647)
+        self.sum[sec]=current
+      end
+      if variants then variants[fp]={content=content} end
+    end
     self.requested[sec..":"..id..":"..fp]=nil
     self:Queue({"ACK",sec,id,fp})
   elseif kind=="ACK" then

@@ -35,6 +35,14 @@
 
 # Changelog
 
+## 1.0.22 — SmartSync identity and long-session fixes
+
+- Index every record by its short identity and content fingerprint pair so short-hash collisions cannot overwrite another record.
+- Resolve DIFF and REQUEST packets against the full pair while preserving the existing LCS3 packet format.
+- Remove the hidden per-session send cutoff; retain four-second pacing, queue limits, throttling, duplicate checks, and SavedVariables.
+- Add Lua 5.1 regressions for collision-variant selection and more than 120 successful sends.
+- Cross-client in-game verification remains pending.
+
 All published versions and downloadable packages are listed under [Releases](https://github.com/uncle-bone/LootCollector/releases).
 
 ## v1.0.11 experimental — Startup lag mitigation

@@ -1,15 +1,15 @@
 # LootCollector CoA
 
-> **[Download Here!](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.21/LootCollector-v1.0.21.zip)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.21)
-> **Current stable release: v1.0.21.**
+> **[Download Here!](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.22/LootCollector-v1.0.22.zip)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.22)
+> **Current stable release: v1.0.22.**
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
 Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
 
-## **Current stable release: v1.0.21.**
+## **Current stable release: v1.0.22.**
 
-This release fixes SmartSync v3 CoASync receive validation for WoW 3.3.5a. Incoming messages are accepted only when the local channel number and plain or decorated channel name both identify CoASync. Automated Lua 5.1 regression, TOC-reference, and ZIP-integrity checks passed. Existing discoveries, map features, protocols, throttling, duplicate protection, and SavedVariables are preserved. In-game multi-client peer verification remains pending.
+This release fixes SmartSync v3 CoASync receive validation for WoW 3.3.5a, preserves every record when short fingerprints collide by indexing the full ID/fingerprint pair, and removes the hidden per-session send cap. Existing discoveries, map features, protocols, pacing, duplicate protection, and SavedVariables are preserved. In-game multi-client peer verification remains pending.
 
 ## Features
 
@@ -22,6 +22,12 @@ This release fixes SmartSync v3 CoASync receive validation for WoW 3.3.5a. Incom
 Discovery pins are community reports, not guaranteed current spawns. Respawn estimates and observed loot lists are not authoritative.
 
 ## Recent changes
+
+### v1.0.22 — SmartSync identity and long-session fixes
+
+- Retain all records that share a short identity hash and answer requests by the full identity/fingerprint pair.
+- Continue SmartSync traffic past 120 packets in one session while retaining four-second send pacing and queue limits.
+- Add Lua 5.1 regressions for collision-variant selection and long-session sending.
 
 ### v1.0.21 — SmartSync CoASync receive validation
 
@@ -49,7 +55,7 @@ Discovery pins are community reports, not guaranteed current spawns. Respawn est
 ## Installation
 
 1. Back up `LootCollectorDB_Asc` from SavedVariables before updating.
-2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.21/LootCollector-v1.0.21.zip).
+2. Download the [current stable ZIP](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.22/LootCollector-v1.0.22.zip).
 3. Extract these **three sibling folders** into `Interface/AddOns/`: `LootCollector`, `LootCollector_CustomImport`, and `LootCollector_StarterDB`.
 4. Restart Conquest Reborn and enable the addons.
 

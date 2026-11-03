@@ -46,6 +46,7 @@ jobs:
           sudo apt-get install -y -qq lua5.1
           find LootCollector LootCollector_CustomImport LootCollector_StarterDB -type f -name "*.lua" -print0 | xargs -0 -r -n1 luac5.1 -p
           lua5.1 tests/smartsync_channel_test.lua
+          lua5.1 tests/smartsync_identity_test.lua
           python3 - <<'PY'
           import pathlib
           for folder in ('LootCollector','LootCollector_CustomImport','LootCollector_StarterDB'):
