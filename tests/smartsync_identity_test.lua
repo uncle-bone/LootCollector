@@ -16,8 +16,8 @@ local id,fp1,fp2="deadbeef","11111111","22222222"
 module.index={W={[id]={[fp1]={content="record-one"},[fp2]={content="record-two"}}},V={},R={},C={}}
 module.peer.Peer={start=now,count=0,last=0,requests=0}
 module:Process("Peer","LCS3;REQUEST;W;"..id..";"..fp2)
-assert(module.outgoing.last==1,"requested collision variant was not queued")
-assert(module.outgoing[1].wire=="LCS3;DATA;W;"..id..";"..fp2..";record-two","request returned the wrong collision variant")
+assert(module.urgent.last==1,"requested collision variant was not queued")
+assert(module.urgent[1].wire=="LCS3;DATA;W;"..id..";"..fp2..";record-two","request returned the wrong collision variant")
 
 -- There must be no per-session hard stop: a long-running client keeps sending.
 module.outgoing={first=1,last=0};module.urgent={first=1,last=0};module.pending={}
