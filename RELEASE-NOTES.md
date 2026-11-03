@@ -1,7 +1,8 @@
-# LootCollector v1.0.23 — SmartSync DATA receive validation
+# LootCollector v1.0.24 — Discoveries Worldforged tooltip fix
 
-- Preserve both return values when recomputing incoming record identity and fingerprint, allowing valid LCS3 DATA records to pass validation and be applied.
-- Keep the LCS3 wire format, collision-safe indexing, throttling, duplicate protection, and saved discovery data unchanged.
-- In-game multi-client verification remains pending.
+- Restore existing Worldforged upgrade-tier/stat/effect tooltip information when hovering items in the Discoveries window.
+- Reuse the same enhanced tooltip logic already working for chat-linked items and map pins; no database or sync protocol changes.
+- Preserve SmartSync v3, saved discoveries, and upgrade phase selection.
+- In-game hover performance and multi-client confirmation remain pending.
 
 Stable release. Automated Lua 5.1, TOC-reference, and ZIP-integrity checks run before publication.
