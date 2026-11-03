@@ -36,6 +36,7 @@ local function channelID()
   return 0
 end
 local function rawData()
+  if S.simulationActive then return S.simulationSeed or {W={},V={},R={}} end
   local rc = L:GetModule("RareChest", true)
   return {
     W = L.GetDiscoveriesDB and L:GetDiscoveriesDB() or {},
@@ -442,7 +443,7 @@ function S:SimulateSolo()
   if self.simulationActive then return false,"already running" end
   local fields={"outgoing","urgent","incoming","pending","peer","index","order","sum",
     "advertised","requested","stats","scanData","scanSection","scanKey","scanning",
-    "scanCount","nextRebuild","diffCursor","simulationDB","simulationQueued"}
+    "scanCount","nextRebuild","diffCursor","simulationDB","simulationQueued","simulationSeed"}
   local saved={}
   for _,key in ipairs(fields) do saved[key]={value=self[key]} end
   local function run()
@@ -488,6 +489,13 @@ function S:SimulateSolo()
       for _ in pairs(variants) do count=count+1 end
     end
     assert(count==self.sum.W.count,"reconciled count mismatch")
+    -- Exercise the production incremental index rebuild on isolated test records.
+    self.simulationSeed={W={data},V={},R={}}
+    self:Rebuild()
+    local budget=100
+    while self.scanning and budget>0 do self:ScanStep();budget=budget-1 end
+    assert(not self.scanning and self.sum.W.count==1 and self.index.W[id] and self.index.W[id][fp],
+      "sandbox index rebuild failed")
     return "HELLO, summary, DIFF request, DATA import, duplicate, malformed, index reconciliation, no transport"
   end
   self.simulationActive=true
