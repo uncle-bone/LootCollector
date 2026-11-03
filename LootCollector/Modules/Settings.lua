@@ -1250,6 +1250,31 @@ local function buildOptions()
                             print("LootCollector CoASync: /"..st.channel.." "..st.identity.." schema="..st.schema.." protocol="..st.protocol.." peers="..st.peers.." pending="..st.outgoing.." incoming="..st.incoming)
                         end,
                     },
+                    researchStatus = {
+                        type = "description",
+                        name = function()
+                            local audit = L:GetModule("ResearchAudit", true)
+                            if not audit then return "CoA-Research reference unavailable." end
+                            return audit:GetStatus() .. "\nLast audit: " .. (audit.lastReport or "Not run")
+                        end,
+                        order = 10.34, fontSize = "medium",
+                    },
+                    researchAuditRun = {
+                        type = "execute", name = "Audit Saved Loot Against CoA Research", order = 10.35,
+                        desc = "On-demand, read-only comparison against upstream pending-SQL item variant IDs. No live loot claims, imports or changes to pins and SavedVariables.",
+                        func = function()
+                            local audit = L:GetModule("ResearchAudit", true)
+                            if audit and audit.RunAudit then audit:RunAudit() end
+                        end,
+                    },
+                    syncIndexRebuild = {
+                        type = "execute", name = "Rebuild CoASync Index", order = 10.36,
+                        desc = "Reindex newly collected local discoveries in small batches. Does not delete or broadcast historical research candidates.",
+                        func = function()
+                            local sync = L:GetModule("SmartSync", true)
+                            if sync and sync.Rebuild then sync:Rebuild() end
+                        end,
+                    },
 					publicChannelEnabled = {
 						type = "toggle",
 						name = "Enable Public Channel Sync",
