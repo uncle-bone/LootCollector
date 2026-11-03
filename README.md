@@ -13,6 +13,10 @@ This release retries Worldforged upgrade tiers whose item information was missin
 
 SmartSync retains the existing LCS3 protocol, collision-safe record indexing, pacing, duplicate protection, and SavedVariables. No database or protocol changes are included.
 
+## Development diagnostic (unreleased; pending Lua 5.1 CI verification)
+
+`/lcs3solo` runs an opt-in **local-only** SmartSync LCS3 receive-path simulation using isolated transient peer, queue, counter, and database state. It exercises HELLO, SUMMARY, DIFF, validated DATA, duplicate and malformed packets, and incremental index rebuild. The simulator blocks CoASync transport and persistent imports and restores live state after success or error. This checks **local protocol logic only**, not real channel delivery or two-client synchronization. Normal peer-to-peer CoASync remains enabled outside simulation.
+
 ## Features
 
 - Browse and search collected or community-reported Worldforged items, loot locations, rare sightings, and treasure chests.
