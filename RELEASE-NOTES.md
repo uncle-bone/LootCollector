@@ -1,8 +1,7 @@
-# LootCollector v1.0.24 — Discoveries Worldforged tooltip fix
+# LootCollector v1.0.25 — Worldforged Viewer tooltip performance
 
-- Restore existing Worldforged upgrade-tier/stat/effect tooltip information when hovering items in the Discoveries window.
-- Reuse the same enhanced tooltip logic already working for chat-linked items and map pins; no database or sync protocol changes.
-- Preserve SmartSync v3, saved discoveries, and upgrade phase selection.
-- In-game hover performance and multi-client confirmation remain pending.
+- Spread Worldforged upgrade scanning across frames when hovering Discoveries rows, instead of scanning all six tiers in one synchronous hover callback.
+- Keep the existing enhanced upgrade tooltip formatting, phase selector, SmartSync v3, and SavedVariables.
+- In-game FPS and hover behavior require live verification.
 
-Stable release. Automated Lua 5.1, TOC-reference, and ZIP-integrity checks run before publication.
+Stable release. GitHub Actions performs Lua 5.1 syntax, regression, TOC and ZIP-integrity checks before publication.
