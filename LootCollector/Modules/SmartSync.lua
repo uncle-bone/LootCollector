@@ -6,7 +6,9 @@ local PREFIX, CHANNEL = "LCS3", "CoASync"
 local SECTIONS = {"W", "V", "R", "C"}
 local MAX_WIRE, MAX_QUEUE, MAX_IN = 225, 96, 96
 local SEND_INTERVAL, START_DELAY, HELLO_INTERVAL = 4, 10, 300
-local SESSION_LIMIT, DIFF_LIMIT, RECORDS_PER_TICK = 120, 240, 5
+local RECORDS_PER_TICK = 5
+-- Four-second pacing is the rolling send budget; no lifetime packet cutoff.
+local ADVERTISE_COOLDOWN, REQUEST_COOLDOWN = 120, 120
 local function clock() return GetTime and GetTime() or 0 end
 local function enabled()
   local p = L.db and L.db.profile
@@ -72,8 +74,9 @@ local function pop(q)
   if q.first > q.last then q.first=1;q.last=0 end
   return v
 end
-S.outgoing={first=1,last=0}; S.incoming={first=1,last=0}
+S.outgoing={first=1,last=0}; S.urgent={first=1,last=0}; S.incoming={first=1,last=0}
 S.pending={}; S.peer={}; S.index={}; S.order={}; S.sum={}
+S.advertised={}; S.requested={}
 S.stats={updated=0,sent=0,received=0,dropped=0,invalid=0,duplicates=0,throttled=0,ack=0}
 S.readyAt=math.huge;S.lastSent=0;S.sentSession=0;S.lastHello=0
 local function say(msg)
@@ -86,7 +89,9 @@ function S:Queue(parts, target)
   if #wire > MAX_WIRE or wire:find("[%c]") then return false end
   local key = (target or "*")..":"..wire
   if self.pending[key] then return false end
-  if not push(self.outgoing,{wire=wire,target=target,key=key,due=clock()+math.random(1,4)},MAX_QUEUE) then self.stats.dropped=self.stats.dropped+1; return false end
+  local urgent=parts[1]=="REQUEST" or parts[1]=="DATA" or parts[1]=="ACK"
+  local q=urgent and self.urgent or self.outgoing
+  if queueLength(self.outgoing)+queueLength(self.urgent)>=MAX_QUEUE or not push(q,{wire=wire,target=target,key=key,due=clock()+math.random(1,4)},MAX_QUEUE) then self.stats.dropped=self.stats.dropped+1; return false end
   self.pending[key]=true
   return true
 end
@@ -154,10 +159,14 @@ function S:SendDiff(sec)
   if limit == 0 then return end
   local start=self.diffCursor and self.diffCursor[sec] or 1
   self.diffCursor=self.diffCursor or {}
+  local now=clock()
   for i=start,math.min(start+7,limit) do
     local id=ids[i]
     local r=self.index[sec][id]
-    if r then self:Queue({"DIFF",sec,id,r.fp}) end
+    local key=sec..":"..id..":"..(r and r.fp or "")
+    if r and (not self.advertised[key] or now-self.advertised[key]>=ADVERTISE_COOLDOWN) then
+      if self:Queue({"DIFF",sec,id,r.fp}) then self.advertised[key]=now end
+    end
   end
   self.diffCursor[sec] = start+8 > limit and 1 or start+8
 end
@@ -244,9 +253,13 @@ function S:Process(sender,wire)
     local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
     if not sec or #id~=8 or #fp~=8 or self.scanning then return end
     local localRec=self.index[sec] and self.index[sec][id]
-    if (not localRec or localRec.fp<fp) and (p.requests or 0)<16 then
-      p.requests=p.requests+1
-      self:Queue({"REQUEST",sec,id,fp})
+    local key=sec..":"..id..":"..fp
+    if (not localRec or localRec.fp<fp) and (p.requests or 0)<16 and
+       (not self.requested[key] or now-self.requested[key]>=REQUEST_COOLDOWN) then
+      if self:Queue({"REQUEST",sec,id,fp}) then
+        p.requests=p.requests+1
+        self.requested[key]=now
+      end
     end
   elseif kind=="REQUEST" then
     local sec,id,fp=rest:match("^([WVRC]);(%x+);(%x+)$")
@@ -271,6 +284,7 @@ function S:Process(sender,wire)
     local checkId,checkFp=reconstructed and encode(sec,reconstructed)
     if checkId~=id or checkFp~=fp then return end
     self:Apply(sec,content,sender)
+    self.requested[sec..":"..id..":"..fp]=nil
     self:Queue({"ACK",sec,id,fp})
   elseif kind=="ACK" then
     self.stats.ack=self.stats.ack+1
@@ -299,13 +313,15 @@ function S:OnLeave()
   self.scanAt=nil
   self.scanning=false
   self.scanData=nil
-  self.outgoing={first=1,last=0};self.pending={}
+  self.outgoing={first=1,last=0};self.urgent={first=1,last=0};self.pending={}
+  self.advertised={};self.requested={}
   self.incoming={first=1,last=0}
 end
 function S:OnEnter()
   self.readyAt=clock()+30
   self.scanAt=clock()+45
   self.sentSession=0
+  self.advertised={};self.requested={}
   self.readyNotified=false
   self.scanAnnouncement=0
   -- Do not scan the database during login, map initialization, or /reload.
@@ -352,20 +368,22 @@ function S:OnUpdate(elapsed)
     if not packet then break end
     self:Process(packet.sender,packet.wire)
   end
-  if queueLength(self.outgoing)==0 and queueLength(self.incoming)==0 and not self.readyNotified then
+  if queueLength(self.outgoing)==0 and queueLength(self.urgent)==0 and queueLength(self.incoming)==0 and not self.readyNotified then
     say("SmartSync startup complete; sharing ready ("..self.stats.updated.." records updated).")
     self.readyNotified=true
   end
-  if t-self.lastSent<SEND_INTERVAL or self.sentSession>=SESSION_LIMIT then return end
+  if t-self.lastSent<SEND_INTERVAL then return end
   local id=channelID()
   if id<=0 or not SendChatMessage then return end
-  local packet=pop(self.outgoing)
+  local urgent=queueLength(self.urgent)>0
+  local q=urgent and self.urgent or self.outgoing
+  local packet=pop(q)
   if not packet then return end
-  if t < packet.due then push(self.outgoing,packet,MAX_QUEUE); return end
+  if t < packet.due then push(q,packet,MAX_QUEUE); return end
   self.pending[packet.key]=nil
   -- No hidden chat-channel joins; Comm owns CoASync independently.
   if InCombatLockdown and InCombatLockdown() then
-    push(self.outgoing,packet,MAX_QUEUE)
+    push(q,packet,MAX_QUEUE)
     self.pending[packet.key]=true
     return
   end
@@ -376,7 +394,7 @@ end
 function S:GetStatus()
   local peers=0
   for _,p in pairs(self.peer) do if clock()-(p.lastActivity or 0)<300 then peers=peers+1 end end
-  return {channel=channelID(),identity="LootCollector-Discovery-v1",schema=1,protocol=3,building=self.scanning,ready=not self.scanning and not self.scanAt,records=self.scanCount or 0,peers=peers,outgoing=queueLength(self.outgoing),incoming=queueLength(self.incoming),stats=self.stats}
+  return {channel=channelID(),identity="LootCollector-Discovery-v1",schema=1,protocol=3,building=self.scanning,ready=not self.scanning and not self.scanAt,records=self.scanCount or 0,peers=peers,outgoing=queueLength(self.outgoing)+queueLength(self.urgent),incoming=queueLength(self.incoming),stats=self.stats}
 end
 function S:OnInitialize()
   self:RegisterEvent("CHAT_MSG_CHANNEL","OnChannel")
