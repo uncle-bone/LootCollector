@@ -1,7 +1,8 @@
-# LootCollector v1.0.25 — Worldforged Viewer tooltip performance
+# LootCollector v1.0.26 — rapid-hover performance hotfix
 
-- Spread Worldforged upgrade scanning across frames when hovering Discoveries rows, instead of scanning all six tiers in one synchronous hover callback.
-- Keep the existing enhanced upgrade tooltip formatting, phase selector, SmartSync v3, and SavedVariables.
-- In-game FPS and hover behavior require live verification.
+- Debounce Worldforged upgrade scans by 250 ms in Discoveries.
+- Cancel stale scans when the pointer moves to a different row; avoid building backlogs of abandoned tooltip work.
+- Reuse cached upgrades without synchronous rescanning in the Viewer.
+- Preserve SmartSync v3, phase selection and SavedVariables.
 
-Stable release. GitHub Actions performs Lua 5.1 syntax, regression, TOC and ZIP-integrity checks before publication.
+Stable release. Automated Lua 5.1 and ZIP checks run before publication. In-game FPS testing remains pending.
