@@ -55,6 +55,30 @@ jobs:
                       target=toc.parent / line.replace('\\','/')
                       assert target.is_file(), f'Missing TOC file: {toc}: {line}'
           PY
+      - name: Validate CoA-Research provenance and incremental audit (Lua 5.1)
+        run: |
+          python3 - <<'PY'
+          import pathlib, re
+          p=pathlib.Path("LootCollector/Modules/ResearchAudit.lua").read_text()
+          assert 'CoA-Research v2.0.1' in p
+          assert 'pending SQL' in p and 'verifiedLootEdges = 0' in p
+          payload=p.split("local historicalFamilies = [=[",1)[1].split("]=]",1)[0]
+          rows=[]
+          for line in payload.splitlines():
+              line=line.strip()
+              if not line: continue
+              assert re.fullmatch(r"\d+,\d+,\d+",line),line
+              rows.append(tuple(map(int,line.split(","))))
+          assert len(rows)==999, len(rows)
+          assert len(set(r[0] for r in rows))==999
+          candidates=[id for b,h,m in rows for id in (h,m) if id>0]
+          assert len(candidates)==len(set(candidates)), "Duplicate candidate IDs"
+          assert not (set(r[0] for r in rows)&set(candidates)), "Variant/base ID collision"
+          assert all(b>0 and h>0 and m>=0 for b,h,m in rows)
+          assert "Modules\\ResearchAudit.lua" in pathlib.Path("LootCollector/LootCollector.toc").read_text()
+          print("PASS: archived provenance, 999 unique families, 1977 unique candidate variant IDs, TOC")
+          PY
+          lua5.1 tests/research_audit.lua
       - name: Publish release and ZIP
         env:
           GH_TOKEN: ${{ github.token }}
