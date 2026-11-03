@@ -592,16 +592,10 @@ local function OnTooltipSetItem(tooltip)
         return
     end
     if inHandler then return end
-    -- The discovery browser renders many item rows; do not synchronously
-    -- scan every upgrade tier when a user hovers a browser row.
-    local owner = tooltip.GetOwner and tooltip:GetOwner()
-    local viewer = _G.LootCollectorViewerWindow
-    local node, depth = owner, 0
-    while node and depth < 8 do
-        if node == viewer then return end
-        node = node.GetParent and node:GetParent()
-        depth = depth + 1
-    end
+    -- Viewer rows use the same item tooltip as map pins and chat links.
+    -- Do not suppress the upgrade section here: BuildUpgradeChain caches
+    -- results and performs bounded asynchronous item-cache priming.
+    -- The prior early return disabled upgrades for every Discoveries row.
 
     if not (L and L.db and L.db.profile and L.db.profile.enhancedWFTooltip) then
         return
