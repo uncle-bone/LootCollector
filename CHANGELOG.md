@@ -35,6 +35,14 @@
 
 # Changelog
 
+## 1.0.23 — SmartSync DATA receive validation
+
+- Preserve both return values when recomputing incoming record identity and fingerprint, allowing valid LCS3 DATA records to pass validation and be applied.
+- Keep the LCS3 wire format, collision-safe indexing, throttling, duplicate protection, and saved discovery data unchanged.
+- In-game multi-client verification remains pending.
+
+
+
 ## 1.0.22 — SmartSync identity and long-session fixes
 
 - Index every record by its short identity and content fingerprint pair so short-hash collisions cannot overwrite another record.

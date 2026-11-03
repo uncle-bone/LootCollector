@@ -285,7 +285,10 @@ function S:Process(sender,wire)
     elseif #a==11 then
       reconstructed={c=num(a[1]),z=num(a[2]),i=num(a[3]),xy={x=num(a[4])/10000,y=num(a[5])/10000},iz=num(a[6]),dt=num(a[7]),q=num(a[8]),it=num(a[9]),ist=num(a[10]),itemName=a[11]}
     end
-    local checkId,checkFp=reconstructed and encode(sec,reconstructed)
+    local checkId,checkFp
+    if reconstructed then
+      checkId,checkFp=encode(sec,reconstructed)
+    end
     if checkId~=id or checkFp~=fp then return end
     if self:Apply(sec,content,sender) then
       local variants=self.index[sec] and self.index[sec][id]
