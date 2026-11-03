@@ -1227,11 +1227,11 @@ local function buildOptions()
                             if not sync or not sync.GetStatus then return "CoASync: initializing" end
                             local st = sync:GetStatus()
                             local x = st.stats
-                            return string.format("CoASync /%d | %s | Schema %d Protocol %d | %s (%d records) | Peers %d | Queue %d/%d | Sent %d Received %d Imported %d Duplicates %d Throttled %d",
+                            return string.format("CoASync /%d | %s | Schema %d Protocol %d | %s (%d records) | Peers %d | Queue %d/%d | Sent %d Received %d Imported %d Duplicates %d Throttled %d | Legacy Queued %d",
                                 st.channel, st.identity, st.schema, st.protocol,
                                 st.building and "Building" or (st.ready and "Ready" or "Waiting"),
                                 st.records, st.peers, st.outgoing, st.incoming,
-                                x.sent, x.received, x.updated, x.duplicates, x.throttled)
+                                x.sent, x.received, x.updated, x.duplicates, x.throttled, (function() local Comm = L:GetModule("Comm", true); return Comm and Comm.GetOutgoingQueueSize and Comm:GetOutgoingQueueSize() or 0 end)())
                         end, order = 10.31, fontSize = "medium",
                     },
                     syncHello = {
@@ -1247,7 +1247,11 @@ local function buildOptions()
                             local sync = L:GetModule("SmartSync", true)
                             if not sync or not sync.GetStatus then return end
                             local st=sync:GetStatus()
-                            print("LootCollector CoASync: /"..st.channel.." "..st.identity.." schema="..st.schema.." protocol="..st.protocol.." peers="..st.peers.." pending="..st.outgoing.." incoming="..st.incoming)
+                            local Comm = L:GetModule("Comm", true)
+                            local legacy = Comm and Comm.GetOutgoingQueueSize and Comm:GetOutgoingQueueSize() or 0
+                            local rate = Comm and Comm.GetRateLimitQueueSize and Comm:GetRateLimitQueueSize() or 0
+                            local x = st.stats
+                            print(string.format("LootCollector CoASync: /%d %s schema=%d protocol=%d peers=%d pending=%d incoming=%d sent=%d received=%d imported=%d duplicates=%d invalid=%d throttled=%d legacyQueued=%d rateQueued=%d", st.channel, st.identity, st.schema, st.protocol, st.peers, st.outgoing, st.incoming, x.sent or 0, x.received or 0, x.updated or 0, x.duplicates or 0, x.invalid or 0, x.throttled or 0, legacy, rate))
                         end,
                     },
                     researchStatus = {
