@@ -28,6 +28,7 @@ Discovery pins are community reports, not guaranteed current spawns. Respawn est
 - Retain all records that share a short identity hash and answer requests by the full identity/fingerprint pair.
 - Continue SmartSync traffic past 120 packets in one session while retaining four-second send pacing and queue limits.
 - Add Lua 5.1 regressions for collision-variant selection and long-session sending.
+- Show v1.0.22 consistently in addon metadata, the in-game About pane, and minimap/vendor build tooltips.
 
 ### v1.0.21 — SmartSync CoASync receive validation
 

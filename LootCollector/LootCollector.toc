@@ -4,7 +4,7 @@
 ## Author: Uncle Bone (CoA maintainer)
 ## X-Upstream-Contributors: Deidre, Rhenyra, Morty, Markosz, Bandit Tech, xan, Stilnight, Xurkon, Netherborne, Jollyg
 ## Version: 1.0.22
-## X-CoA-Version: 1.0.21
+## X-CoA-Version: 1.0.22
 ## X-Upstream-Version: 1.0.6
 ## X-Maintainer: Uncle Bone
 ## X-Website: https://github.com/uncle-bone/LootCollector

@@ -49,6 +49,12 @@ jobs:
           lua5.1 tests/smartsync_identity_test.lua
           python3 - <<'PY'
           import pathlib
+          toc=pathlib.Path('LootCollector/LootCollector.toc').read_text(encoding='utf-8-sig')
+          core=pathlib.Path('LootCollector/LootCollector.lua').read_text(encoding='utf-8-sig')
+          minimap=pathlib.Path('LootCollector/Modules/MinimapButton.lua').read_text(encoding='utf-8-sig')
+          assert '## Version: 1.0.22' in toc and '## X-CoA-Version: 1.0.22' in toc
+          assert 'self.Version      = "1.0.22"' in core and 'self.BuildStamp   = "1.0.22"' in core
+          assert 'L.BuildStamp or "?"' in minimap
           for folder in ('LootCollector','LootCollector_CustomImport','LootCollector_StarterDB'):
               for toc in pathlib.Path(folder).glob('*.toc'):
                   for raw in toc.read_text(encoding='utf-8-sig').splitlines():
@@ -65,8 +71,9 @@ jobs:
           args=()
           if [ "$PRERELEASE" = true ]; then args+=(--prerelease --latest=false); else args+=(--latest); fi
           if gh release view "$VERSION" >/dev/null 2>&1; then
-            echo "::error::Release already exists; refusing to overwrite it"
-            exit 1
+            gh release upload "$VERSION" "$ASSET" --clobber
+            gh release edit "$VERSION" --title "${GITHUB_REPOSITORY#*/} $VERSION" --notes-file RELEASE-NOTES.md
+          else
+            gh release create "$VERSION" "$ASSET" --target "$GITHUB_SHA" --title "${GITHUB_REPOSITORY#*/} $VERSION" --notes-file RELEASE-NOTES.md "${args[@]}"
           fi
-          gh release create "$VERSION" "$ASSET" --target "$GITHUB_SHA" --title "${GITHUB_REPOSITORY#*/} $VERSION" --notes-file RELEASE-NOTES.md "${args[@]}"
 
