@@ -1,6 +1,7 @@
 # LootCollector CoA
 
-> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.16)
+> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.19)
+> **Current stable release: v1.0.19.**
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
