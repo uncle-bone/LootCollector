@@ -588,36 +588,50 @@ end
 
 -- Viewer hover: build at most one upgrade tier per frame. The regular
 -- tooltip path remains unchanged; this avoids six synchronous scans on hover.
-local viewerUpgradeJobs = {}
+-- Viewer hover work is deferred and cancelled when the pointer moves.
+-- Never accumulate tier scans for items the user merely passes over.
+local viewerHoverGeneration = 0
+local viewerUpgradeJob = nil
 local function BuildViewerUpgradeChainAsync(itemID, tooltip, owner)
-    local baseID = L.GetBaseItemID and L:GetBaseItemID(itemID) or itemID
-    if upgradeCache[baseID] then return upgradeCache[baseID] end
-    if viewerUpgradeJobs[baseID] then return nil end
+    local baseID = L.GetBaseItemID and (L:GetBaseItemID(itemID) or itemID) or itemID
+    viewerHoverGeneration = viewerHoverGeneration + 1
+    local generation = viewerHoverGeneration
+    viewerUpgradeJob = nil
+    local function stillHovered()
+        if generation ~= viewerHoverGeneration then return false end
+        if not tooltip or not tooltip:IsShown() or tooltip:GetOwner() ~= owner then return false end
+        local _, link = tooltip:GetItem()
+        return GetItemIDFromLink(link) == itemID
+    end
+    local function showChain(chain)
+        if not stillHovered() then return end
+        inHandler = true
+        AddUpgradeInfo(tooltip, chain)
+        tooltip:Show()
+        inHandler = false
+    end
+    local cached = upgradeCache[baseID]
+    if cached then
+        showChain(cached)
+        return
+    end
     local job = { chain = {}, index = 1 }
-    viewerUpgradeJobs[baseID] = job
+    viewerUpgradeJob = job
     local function step()
-        if viewerUpgradeJobs[baseID] ~= job then return end
+        if viewerUpgradeJob ~= job or not stillHovered() then
+            if viewerUpgradeJob == job then viewerUpgradeJob = nil end
+            return
+        end
         local tier = DIFFICULTY_TIERS[job.index]
         if not tier then
-            viewerUpgradeJobs[baseID] = nil
+            viewerUpgradeJob = nil
             if #job.chain > 0 then
-                if not upgradeCache[baseID] then
-                    table.insert(upgradeCacheQueue, baseID)
-                    if #upgradeCacheQueue > CACHE_SIZE_LIMIT then
-                        upgradeCache[table.remove(upgradeCacheQueue, 1)] = nil
-                    end
+                table.insert(upgradeCacheQueue, baseID)
+                if #upgradeCacheQueue > CACHE_SIZE_LIMIT then
+                    upgradeCache[table.remove(upgradeCacheQueue, 1)] = nil
                 end
                 upgradeCache[baseID] = job.chain
-                -- Only update the tooltip if the original item is still hovered.
-                if tooltip and tooltip:IsShown() and tooltip:GetOwner() == owner then
-                    local _, link = tooltip:GetItem()
-                    if GetItemIDFromLink(link) == itemID then
-                        inHandler = true
-                        AddUpgradeInfo(tooltip, job.chain)
-                        tooltip:Show()
-                        inHandler = false
-                    end
-                end
+                showChain(job.chain)
             end
             return
         end
@@ -639,10 +653,10 @@ local function BuildViewerUpgradeChainAsync(itemID, tooltip, owner)
             table.insert(job.chain, entry)
         end
         job.index = job.index + 1
-        C_Timer.After(0.01, step)
+        C_Timer.After(0.03, step)
     end
-    C_Timer.After(0.01, step)
-    return nil
+    -- Rapid list scrolling should never start an upgrade scan.
+    C_Timer.After(0.25, step)
 end
 
 local function OnTooltipSetItem(tooltip)
@@ -689,7 +703,7 @@ local function OnTooltipSetItem(tooltip)
         node = node.GetParent and node:GetParent()
         depth = depth + 1
     end
-    if isViewer and not upgradeCache[L.GetBaseItemID and (L:GetBaseItemID(itemID) or itemID) or itemID] then
+    if isViewer then
         BuildViewerUpgradeChainAsync(itemID, tooltip, owner)
         return
     end
