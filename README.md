@@ -1,10 +1,20 @@
 # LootCollector CoA
 
-> **[Download](https://github.com/uncle-bone/LootCollector/releases/latest)**
+> **[Download v1.0.20 — CoA-Research integration preview](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.20/LootCollector-v1.0.20.zip)** · [Stable v1.0.19](https://github.com/uncle-bone/LootCollector/releases/download/v1.0.19/LootCollector-v1.0.19.zip)
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
 Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
+
+## Development preview: v1.0.20 — CoA-Research v2.0.1
+
+- Added an on-demand, **read-only CoA-Research loot audit** under **Settings → Behavior & Sharing**. It compares your saved item IDs against **999 upstream pending-SQL item-variant families** in 75-record batches. These are *historical source candidates*, **not verified current drops**; no pins, spawns or SavedVariables are automatically imported or overwritten.
+- Added **Rebuild CoASync Index** to refresh the existing incremental local discovery index without clearing discoveries.
+- Improved **Print Sync Diagnostics** and status display to include both SmartSync and legacy outgoing queues.
+- Corrected the actual in-game addon version: the Discoveries header, About panel, build stamp and peer metadata now derive from the installed TOC instead of the obsolete hardcoded v1.0.6.
+- Added Lua 5.1 mock audit tests and candidate provenance/integrity checks.
+
+The shared item-and-loot export contains **zero live-verified loot relationships**; the NPC/quest source inventory has no normalized spawn coordinates. See [integration evidence and limitations](research/COA-RESEARCH-v2.0.1-LOOT-AUDIT.md). The v1.0.20 prerelease requires live-client validation.
 
 ## Current stable release: v1.0.19
 
