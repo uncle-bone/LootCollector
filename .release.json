@@ -6,5 +6,6 @@
     "LootCollector_CustomImport",
     "LootCollector_StarterDB"
   ],
-  "extras": []
+  "extras": [],
+  "validationRevision": 2
 }
