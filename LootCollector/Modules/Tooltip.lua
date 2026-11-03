@@ -586,6 +586,65 @@ local function BuildUpgradeChain(itemID)
     return nil
 end
 
+-- Viewer hover: build at most one upgrade tier per frame. The regular
+-- tooltip path remains unchanged; this avoids six synchronous scans on hover.
+local viewerUpgradeJobs = {}
+local function BuildViewerUpgradeChainAsync(itemID, tooltip, owner)
+    local baseID = L.GetBaseItemID and L:GetBaseItemID(itemID) or itemID
+    if upgradeCache[baseID] then return upgradeCache[baseID] end
+    if viewerUpgradeJobs[baseID] then return nil end
+    local job = { chain = {}, index = 1 }
+    viewerUpgradeJobs[baseID] = job
+    local function step()
+        if viewerUpgradeJobs[baseID] ~= job then return end
+        local tier = DIFFICULTY_TIERS[job.index]
+        if not tier then
+            viewerUpgradeJobs[baseID] = nil
+            if #job.chain > 0 then
+                if not upgradeCache[baseID] then
+                    table.insert(upgradeCacheQueue, baseID)
+                    if #upgradeCacheQueue > CACHE_SIZE_LIMIT then
+                        upgradeCache[table.remove(upgradeCacheQueue, 1)] = nil
+                    end
+                end
+                upgradeCache[baseID] = job.chain
+                -- Only update the tooltip if the original item is still hovered.
+                if tooltip and tooltip:IsShown() and tooltip:GetOwner() == owner then
+                    local _, link = tooltip:GetItem()
+                    if GetItemIDFromLink(link) == itemID then
+                        inHandler = true
+                        AddUpgradeInfo(tooltip, job.chain)
+                        tooltip:Show()
+                        inHandler = false
+                    end
+                end
+            end
+            return
+        end
+        local upgradedID = ResolveUpgradeIDForTier(baseID, tier.index)
+        if upgradedID then
+            local name, link, quality = GetItemInfo(upgradedID)
+            local entry = {
+                itemID = upgradedID, tierIndex = tier.index,
+                tierName = tier.name, tierShort = tier.short,
+                itemName = name, itemLink = link or ("item:" .. upgradedID),
+                quality = quality or 2, stats = {}, effects = {},
+                placeholder = not (name and link),
+            }
+            if entry.placeholder then
+                PrimeItemCache(upgradedID)
+            else
+                entry.stats, entry.effects = GetItemInfoAndEffects(link)
+            end
+            table.insert(job.chain, entry)
+        end
+        job.index = job.index + 1
+        C_Timer.After(0.01, step)
+    end
+    C_Timer.After(0.01, step)
+    return nil
+end
+
 local function OnTooltipSetItem(tooltip)
     local Core = L:GetModule("Core", true)
     if Core and Core.isSB and Core:isSB() then
@@ -620,6 +679,20 @@ local function OnTooltipSetItem(tooltip)
     end
 
     DebugPrint(">>> Confirmed Worldforged")
+
+    -- Do not synchronously scan every upgrade on Discoveries row hover.
+    local owner = tooltip.GetOwner and tooltip:GetOwner()
+    local viewer = _G.LootCollectorViewerWindow
+    local node, depth, isViewer = owner, 0, false
+    while node and depth < 8 do
+        if node == viewer then isViewer = true; break end
+        node = node.GetParent and node:GetParent()
+        depth = depth + 1
+    end
+    if isViewer and not upgradeCache[L.GetBaseItemID and (L:GetBaseItemID(itemID) or itemID) or itemID] then
+        BuildViewerUpgradeChainAsync(itemID, tooltip, owner)
+        return
+    end
 
     inHandler = true
 
