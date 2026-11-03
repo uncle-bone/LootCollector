@@ -1,17 +1,17 @@
 # LootCollector CoA
 
-> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.23)
-> **Current stable release: v1.0.23.**
+> **[Download Here!](https://coa-research.unclebone.workers.dev/download/LootCollector)** · [Release notes](https://github.com/uncle-bone/LootCollector/releases/tag/v1.0.24)
+> **Current stable release: v1.0.24.**
 
 **Discover, map, track and share Worldforged loot, rare creatures and treasure chests** in Ascension: Conquest of Azeroth / Conquest Reborn (WoW 3.3.5a, Interface 30300).
 
 Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Report an issue](https://github.com/uncle-bone/LootCollector/issues)
 
-## **Current stable release: v1.0.23.**
+## **Current stable release: v1.0.24.**
 
-This release fixes SmartSync v3 DATA fingerprint validation so incoming records retain both recomputed identity and content fingerprints before validation and application.
+This release restores the existing Worldforged upgrade-tier, stat, and effect tooltip when hovering items in the Discoveries window.
 
-SmartSync retains the existing LCS3 protocol, collision-safe record indexing, pacing, duplicate protection, and SavedVariables.
+SmartSync retains the existing LCS3 protocol, collision-safe record indexing, pacing, duplicate protection, and SavedVariables. No database or protocol changes are included.
 
 ## Features
 
@@ -24,6 +24,13 @@ SmartSync retains the existing LCS3 protocol, collision-safe record indexing, pa
 Discovery pins are community reports, not guaranteed current spawns. Respawn estimates and observed loot lists are not authoritative.
 
 ## Recent changes
+
+### v1.0.24 — Discoveries Worldforged upgrade tooltips
+
+- Remove the Discoveries-only suppression that prevented enhanced Worldforged tooltips from displaying upgrades.
+- Reuse the working chat/map upgrade display with existing caching; live hover-performance validation pending.
+- Preserve discovery records, phase selection, SmartSync v3, and SavedVariables.
+
 
 ### v1.0.23 — SmartSync DATA receive validation
 
