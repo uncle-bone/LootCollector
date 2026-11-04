@@ -9,9 +9,7 @@ Maintained by **Uncle Bone** · [GitHub](https://github.com/uncle-bone) · [Repo
 
 ## **Current stable release: v1.0.28.**
 
-This release retries Worldforged upgrade tiers whose item information was missing during initial Discoveries hover, while retaining rapid-hover lag protection.
-
-SmartSync retains the existing LCS3 protocol, collision-safe record indexing, pacing, duplicate protection, and SavedVariables. No database or protocol changes are included.
+**v1.0.28 adds an opt-in, sandboxed SmartSync LCS3 solo diagnostic** (`/lcs3solo`) alongside unchanged real CoASync peer-to-peer sharing. The simulator exercises receive validation, import, duplicate and malformed input rejection, and index reconciliation without transmitting test packets or persisting test records. The Worldforged tooltip cache and rapid-hover protections from earlier releases are retained.
 
 ## SmartSync v3 local diagnostic (opt-in)
 
@@ -29,10 +27,12 @@ Discovery pins are community reports, not guaranteed current spawns. Respawn est
 
 ## Recent changes
 
-### v1.0.28 — Worldforged tooltip cache refresh
+### v1.0.28 — SmartSync LCS3 solo diagnostic
 
-- Retry missing upgrade-tier data after the client item cache warms, instead of permanently reusing incomplete tooltip results.
-- Preserve rapid-hover cancellation, SmartSync v3 and SavedVariables. Live testing pending.
+- Add `/lcs3solo` to exercise real LCS3 receive, validation, import, duplicate, malformed, and reconciliation logic using isolated test state.
+- Block simulated CoASync sends and persistent imports; restore live state after test completion or failure.
+- Preserve existing live LCS3 peer-to-peer sharing, throttling, collision protection, and SavedVariables.
+- **In-game solo test:** PASS. Live counters advanced from peers=7, sent=46, received=241, imported=67 to peers=7, sent=65, received=307, imported=87. This is evidence of real receive/import progress, not an independent two-client comparison.
 
 
 ### v1.0.26 — Rapid-hover performance hotfix
