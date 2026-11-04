@@ -4,4 +4,4 @@
 - Prevented network transmission and persistent record imports during simulation; restored live module state on success and injected failure.
 - Added Lua 5.1 regression test and release workflow gate.
 - Preserved normal CoASync peer-to-peer sharing, wire formats, rate limits, collision-safe indexes, and SavedVariables schema.
-- Simulator validates local logic only, not real two-client channel delivery. Live in-game validation remains pending.
+- **In-game verification:** `/lcs3solo` reported PASS; live state reported clean and ready. Live CoASync counters progressed from 7 peers / 46 sent / 241 received / 67 imported to 7 peers / 65 sent / 307 received / 87 imported. Actual two-client record comparison remains unverified.
